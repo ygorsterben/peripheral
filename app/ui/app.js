@@ -46,44 +46,51 @@ function ajustarTela() {
     const tela = document.querySelector(".tela.ativa");
     if (!tela) return;
     document.body.style.zoom = 1;
-    tela.style.width = `${BASE_L}px`;
-    tela.style.height = "auto";
-    tela.classList.add("medindo");
-    const medir = () => Math.max(tela.scrollHeight, ...[...tela.querySelectorAll("main")].map((m) => m.scrollHeight));
-    // telas com abas (teclado: Luz, Geral, Teclas) usam a altura da aba mais alta, para o zoom não mudar entre abas
-    const abas = [...tela.querySelectorAll(".aba")];
-    let precisa = medir();
-    if (abas.length) {
-      precisa = Math.max(...abas.map((aba) => {
-        abas.forEach((x) => { x.style.display = x === aba ? "block" : "none"; });
-        return medir();
-      }));
-      abas.forEach((x) => { x.style.display = ""; });
-    }
-    tela.classList.remove("medindo");
-    const estimativa = Math.min(ZOOM_MAX, window.innerWidth / BASE_L, window.innerHeight / precisa);
-    let z = estimativa;
-    const aplicar = () => {
-      document.body.style.zoom = z;
-      tela.style.width = `${window.innerWidth / z}px`;
-      tela.style.height = `${window.innerHeight / z}px`;
+    // As telas dos aparelhos (mouse e teclado) usam o MESMO zoom — o que couber nas duas —, para nada mudar de
+    // tamanho (como a barra lateral) ao passar de uma para a outra. As outras telas têm o próprio zoom.
+    const grupo = tela.classList.contains("aparelho") ? [...document.querySelectorAll(".tela.aparelho")] : [tela];
+    const medirTela = (t) => {
+      const antes = t.style.display;
+      if (t !== tela) t.style.display = "flex";  // tela escondida: mostra só durante a medição
+      t.style.width = `${BASE_L}px`;
+      t.style.height = "auto";
+      t.classList.add("medindo");
+      const medir = () => Math.max(t.scrollHeight, ...[...t.querySelectorAll("main")].map((m) => m.scrollHeight));
+      // telas com abas (teclado: Luz, Geral, Teclas) usam a altura da aba mais alta, para o zoom não mudar entre abas
+      const abas = [...t.querySelectorAll(".aba")];
+      let precisa = medir();
+      if (abas.length) {
+        precisa = Math.max(...abas.map((aba) => {
+          abas.forEach((x) => { x.style.display = x === aba ? "block" : "none"; });
+          return medir();
+        }));
+        abas.forEach((x) => { x.style.display = ""; });
+      }
+      t.classList.remove("medindo");
+      if (t !== tela) t.style.display = antes;
+      return precisa;
     };
-    // Mesma tela, mesma janela e mesma estimativa: reaplica o zoom já conferido, sem passos intermediários.
-    // (O estado chega a cada 2 s; trocar o zoom toda vez fechava listas abertas, como a do modo de repetição.)
-    const chave = `${tela.id}|${window.innerWidth}x${window.innerHeight}|${estimativa.toFixed(4)}`;
-    if (zoomConferido.chave === chave) {
-      z = zoomConferido.z;
-      aplicar();
-      return;
-    }
-    aplicar();
+    const precisa = Math.max(...grupo.map(medirTela));
+    const estimativa = Math.min(ZOOM_MAX, window.innerWidth / BASE_L, window.innerHeight / precisa);
+    const aplicar = (z) => {
+      document.body.style.zoom = z;
+      grupo.forEach((t) => {
+        t.style.width = `${window.innerWidth / z}px`;
+        t.style.height = `${window.innerHeight / z}px`;
+      });
+    };
+    // Mesmo grupo, mesma janela e mesma estimativa: parte do zoom já conferido (sem passos intermediários: o estado
+    // chega a cada 2 s e trocar o zoom toda vez fechava listas abertas). A conferência abaixo só pode diminuir.
+    const chave = `${grupo.map((t) => t.id).join(",")}|${window.innerWidth}x${window.innerHeight}|${estimativa.toFixed(4)}`;
+    let z = zoomConferido.chave === chave ? zoomConferido.z : estimativa;
+    aplicar(z);
     // conferência: a medição acima é uma estimativa (ex.: aba Teclas com a macro aberta e janela baixa ficava cortada).
     // Se algo ainda transborda no tamanho real, diminui o zoom na proporção e confere de novo.
     for (let i = 0; i < 4; i++) {
       const sobra = Math.max(0, ...[...tela.querySelectorAll("main")].map((m) => m.scrollHeight / Math.max(1, m.clientHeight)));
       if (sobra <= 1.005) break;
       z /= sobra;
-      aplicar();
+      aplicar(z);
     }
     zoomConferido = { chave, z };
   });
