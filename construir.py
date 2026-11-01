@@ -49,6 +49,7 @@ def main():
         "--add-data", f"{RAIZ / 'app' / 'ui'}{sep}app/ui",
         "--add-data", f"{RAIZ / 'perifericos' / 'dados'}{sep}perifericos/dados",
         "--hidden-import", "pystray._win32",
+        "--collect-data", "soundcard",  # os .h que o soundcard carrega com cffi (efeito Música)
         "--distpath", str(RAIZ / "dist"), "--workpath", str(BUILD / "pyinstaller"), "--specpath", str(BUILD),
         str(RAIZ / "iniciar.py"),
     ]

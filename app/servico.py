@@ -21,7 +21,11 @@ from perifericos.mouse import ESPERA_MAX, Mouse, ler_funcao
 from perifericos.teclado import (COLORIDO, EFEITOS, IDX_DEBOUNCE, IDX_EFEITO, IDX_SONO, Teclado, cor_do_efeito,
                                  cores_atuais)
 
+from .efeitos import EFEITOS as EFEITOS_APP
+
 INTERVALO = 60          # segundos entre leituras automáticas
+QUADROS_POR_S = 20      # cor ao vivo (efeitos do app); o software oficial manda ~20 quadros/s pelo cabo
+REABRIR_VIVO = 2        # efeito do app ligado sem teclado: tenta de novo a cada tantos segundos
 PULSO = 3               # segundos entre conferências de aparelho conectado/desconectado
 REPETIR_MOUSE = 5       # mouse parado/dormindo: tenta de novo a cada tantos segundos
 REPETIR_TECLADO = 15    # teclado dormindo: idem
@@ -130,10 +134,16 @@ class Carteiro(threading.Thread):
         super().__init__(name="carteiro", daemon=True)
         self._pedidos = queue.Queue()
         self._trava = threading.Lock()
+        self._trava_pedidos = threading.Lock()  # pedido "começou" × "abandonado" (ver _esperar)
         self._mouse = None
         self._teclado = None
         self._parar = False
         self.estado = self._carregar()
+        # efeito do app (cor ao vivo): fica "ligado" mesmo sem teclado; manda quadros quando dá
+        self._efeito = None          # objeto de app/efeitos.py
+        self._efeito_info = None     # {"nome", "opcoes", "situacao": "ligado"|"esperando", "erro"}
+        self.ultimo_quadro = None
+        self._enviou_quadro = False  # algum quadro chegou ao teclado desde que o efeito ligou
 
     # -- estado (lido pela interface em outra thread)
 
@@ -157,7 +167,9 @@ class Carteiro(threading.Thread):
 
     def ler_estado(self):
         with self._trava:
-            return json.loads(json.dumps(self.estado))
+            e = json.loads(json.dumps(self.estado))
+            e.setdefault("teclado", {})["efeito_app"] = dict(self._efeito_info) if self._efeito_info else None
+            return e
 
     def _publicar(self, nome, valores):
         with self._trava:
@@ -173,45 +185,169 @@ class Carteiro(threading.Thread):
         """Roda `operacao(aparelho_aberto)` na thread do carteiro e devolve {"ok": bool, "erro": str}."""
         pronto, resultado = threading.Event(), {}
         self._pedidos.put(("op", aparelho, operacao, pronto, resultado))
-        if not pronto.wait(limite):
-            return {"ok": False, "erro": "O aparelho demorou demais para responder."}
-        return resultado
+        return self._esperar(pronto, resultado, limite, "O aparelho demorou demais para responder.")
 
-    def parar(self):
+    def _esperar(self, pronto, resultado, limite, erro, descartavel=True):
+        """Espera o carteiro. Se o limite estoura e o pedido ainda não começou, ele é abandonado e não roda mais
+        (senão a tela mostraria erro e a mudança aconteceria depois, sem ninguém saber). Se já começou, espera
+        terminar e devolve o resultado de verdade. `descartavel=False` (desligar) espera sempre."""
+        if pronto.wait(limite):
+            return resultado
+        with self._trava_pedidos:
+            if descartavel and not resultado.get("comecou"):
+                resultado["abandonado"] = True
+                return {"ok": False, "erro": erro}
+        pronto.wait()  # já começou (ou não pode ser descartado): o resultado é o que conta
+        return resultado if "ok" in resultado else {"ok": False, "erro": erro}
+
+    def parar(self, esperar=5):
+        """Encerra o laço. Com um efeito do app ligado, devolve antes o teclado ao efeito gravado nele."""
         self._parar = True
         self._pedidos.put("parar")
+        if esperar and self.is_alive() and threading.current_thread() is not self:
+            self.join(esperar)
+
+    def ligar_efeito(self, nome, opcoes, limite=15):
+        """Liga (ou ajusta, se já é o mesmo) um efeito do app. {"ok", "erro"}."""
+        pronto, resultado = threading.Event(), {}
+        self._pedidos.put(("vivo", nome, dict(opcoes or {}), pronto, resultado))
+        return self._esperar(pronto, resultado, limite, "O app demorou demais para ligar o efeito.")
+
+    def desligar_efeito(self, limite=30):
+        pronto, resultado = threading.Event(), {}
+        self._pedidos.put(("desligar", None, None, pronto, resultado))
+        return self._esperar(pronto, resultado, limite, "O teclado demorou demais para responder.", descartavel=False)
 
     def run(self):
         """Laço principal: a cada PULSO s confere se algum aparelho entrou ou saiu (só lista a USB, sem falar
         com eles) e relê quando muda, quando a interface pede, a cada INTERVALO s, ou de tempos em tempos enquanto
-        o mouse está parado / o teclado dormindo."""
+        o mouse está parado / o teclado dormindo. Com um efeito do app ligado, manda QUADROS_POR_S quadros/s."""
         assinatura, ultima = None, {"mouse": 0.0, "teclado": 0.0}
+        proximo_pulso = proximo_quadro = 0.0
         while not self._parar:
             agora = time.monotonic()
-            atual = presenca()
-            mudou = atual != assinatura
-            assinatura = atual
-            for nome, ler, espera in (("mouse", self._ler_mouse, REPETIR_MOUSE), ("teclado", self._ler_teclado, REPETIR_TECLADO)):
-                pendente = bool(self.estado.get(nome, {}).get("aviso"))
-                if mudou or agora - ultima[nome] >= INTERVALO or (pendente and agora - ultima[nome] >= espera):
-                    if mudou:  # aparelho trocou de caminho (cabo/dongle/BT) ou sumiu: reabre do zero
-                        (self._fechar_mouse if nome == "mouse" else self._fechar_teclado)()
-                    ler()
-                    ultima[nome] = time.monotonic()
+            if agora >= proximo_pulso:
+                proximo_pulso = agora + PULSO
+                atual = presenca()
+                mudou = atual != assinatura
+                assinatura = atual
+                for nome, ler, espera in (("mouse", self._ler_mouse, REPETIR_MOUSE), ("teclado", self._ler_teclado, REPETIR_TECLADO)):
+                    pendente = bool(self.estado.get(nome, {}).get("aviso"))
+                    if mudou or agora - ultima[nome] >= INTERVALO or (pendente and agora - ultima[nome] >= espera):
+                        if mudou:  # aparelho trocou de caminho (cabo/dongle/BT) ou sumiu: reabre do zero
+                            (self._fechar_mouse if nome == "mouse" else self._fechar_teclado)()
+                        ler()
+                        ultima[nome] = time.monotonic()
+            espera = proximo_pulso - time.monotonic()
+            if self._efeito:
+                espera = min(espera, proximo_quadro - time.monotonic())
             try:
-                pedido = self._pedidos.get(timeout=PULSO)
+                pedido = self._pedidos.get(timeout=max(0.0, espera))
             except queue.Empty:
-                continue
+                pedido = None
             if pedido == "parar":
                 break
             if isinstance(pedido, tuple):
-                self._operar(*pedido[1:])
-                ultima[pedido[1]] = time.monotonic()
-            else:
+                with self._trava_pedidos:  # junto com _esperar: ou começa aqui, ou foi abandonado lá
+                    abandonado = pedido[-1].get("abandonado")
+                    pedido[-1]["comecou"] = not abandonado
+            if isinstance(pedido, tuple) and abandonado:
+                pedido[-2].set()  # a tela já desistiu de esperar: não roda
+            elif isinstance(pedido, tuple):
+                tipo = pedido[0]
+                if tipo == "op":
+                    self._operar(*pedido[1:])
+                    ultima[pedido[1]] = time.monotonic()
+                elif tipo == "vivo":
+                    self._ligar_efeito(*pedido[1:])
+                elif tipo == "desligar":
+                    self._desligar_efeito(*pedido[3:])
+            elif pedido == "atualizar":
                 ultima = {"mouse": 0.0, "teclado": 0.0}
+                proximo_pulso = 0.0
+            if self._efeito and time.monotonic() >= proximo_quadro:
+                proximo_quadro = time.monotonic() + self._mandar_quadro()
+        self._desligar_efeito(None, {})
         for aparelho in (self._mouse, self._teclado):
             if aparelho:
                 aparelho.fechar()
+
+    # -- efeitos do app (cor ao vivo)
+
+    def _ligar_efeito(self, nome, opcoes, pronto, resultado):
+        try:
+            classe = EFEITOS_APP.get(nome)
+            if classe is None:
+                raise ValueError(f"efeito desconhecido: {nome}")
+            classe.validar(**opcoes)  # antes de mexer no efeito que está rodando
+            if self._efeito and self._efeito_info["nome"] == nome:
+                self._efeito.ajustar(**opcoes)
+            else:
+                novo = classe(**opcoes)
+                if self._efeito:
+                    self._efeito.parar()
+                self._efeito = novo
+            with self._trava:
+                self._efeito_info = {"nome": nome, "opcoes": opcoes, "situacao": "esperando", "erro": None}
+            resultado["ok"] = True
+        except (ValueError, TypeError) as e:
+            resultado.update(ok=False, erro=str(e))
+        finally:
+            pronto.set()
+
+    def _desligar_efeito(self, pronto, resultado):
+        """Para o efeito e devolve o teclado ao efeito gravado: relê o bloco de configuração e regrava (como o
+        software oficial ao sair do modo música). Relê na hora para não desfazer o que mudou enquanto estava ligado."""
+        efeito, self._efeito = self._efeito, None
+        enviou, self._enviou_quadro = self._enviou_quadro, False
+        with self._trava:
+            self._efeito_info = None
+        self.ultimo_quadro = None
+        try:
+            if efeito:
+                efeito.parar()
+            if enviou:  # só regrava se algum quadro chegou ao teclado (no Bluetooth nunca chega)
+                if self._teclado is None:
+                    self._teclado = Teclado.abrir()
+                self._teclado.gravar_bloco(self._teclado.ler_bloco())
+            resultado["ok"] = True
+        except (ErroPeriferico, OSError) as e:
+            resultado.update(ok=False, erro=str(e))
+            self._fechar_teclado()
+        finally:
+            if pronto:
+                pronto.set()
+
+    def _mandar_quadro(self):
+        """Manda um quadro; devolve quantos segundos esperar até o próximo."""
+        def marcar(situacao, erro=None):
+            with self._trava:
+                if self._efeito_info:
+                    self._efeito_info.update(situacao=situacao, erro=erro)
+        inicio = time.monotonic()
+        try:
+            quadro = self._efeito.quadro()
+            self.ultimo_quadro = quadro
+            if self._teclado is None:
+                self._teclado = Teclado.abrir()
+            self._teclado.quadro_ao_vivo(quadro)
+            self._enviou_quadro = True
+            marcar("ligado", getattr(self._efeito, "erro", None))
+            # o receptor leva ~6 ms por pacote: desconta o tempo gasto para não pedir mais do que ele dá conta
+            return max(0.01, 1 / QUADROS_POR_S - (time.monotonic() - inicio))
+        except ErroPeriferico as e:
+            marcar("esperando", str(e))
+            if "Bluetooth" in str(e):
+                return REABRIR_VIVO * 5
+            self._fechar_teclado()
+            return REABRIR_VIVO
+        except OSError as e:
+            marcar("esperando", str(e))
+            self._fechar_teclado()
+            return REABRIR_VIVO
+        except Exception as e:  # erro do próprio efeito: não pode derrubar a thread do carteiro
+            marcar("esperando", f"erro no efeito: {e}")
+            return REABRIR_VIVO
 
     # -- gravações
 

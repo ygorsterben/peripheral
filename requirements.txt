@@ -3,3 +3,5 @@ hidapi==0.15.0      # fala com o mouse e o teclado
 pywebview==6.2.1    # janela com a interface (motor Edge WebView2 do Windows 11)
 pystray==0.19.5     # ícone na bandeja
 pillow==13.0.0      # imagem do ícone (usada pelo pystray e por tools/contorno_mouse.py)
+soundcard==0.4.6    # efeito Música: ouve o som que sai do PC (loopback do Windows)
+numpy==2.5.4        # efeito Música: espectro (FFT)

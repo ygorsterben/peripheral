@@ -6,6 +6,7 @@ Fechar a janela só a esconde: o app continua na bandeja. "Sair" no menu da band
 import json
 import sys
 import threading
+import time
 from pathlib import Path
 
 import pystray
@@ -15,6 +16,7 @@ from PIL import Image, ImageDraw
 from perifericos.mouse import FUNCOES_ATALHO, FUNCOES_MIDIA, BOTOES_PADRAO, arredondar_dpi, montar_funcao
 
 from . import NOME, VERSAO
+from .efeitos import EFEITOS as EFEITOS_APP, teclas_acesas
 from perifericos.teclado import (ENTRADA_SEM_FUNCAO, entrada_macro, entrada_midia, entrada_tecla, montar_macros,
                                  montar_tabela_teclas, mudar_cor)
 
@@ -62,6 +64,7 @@ class Api:
 
     def __init__(self, carteiro):
         self._carteiro = carteiro
+        self._previa = None  # efeito do app rodando só para a prévia na tela
 
     def estado(self):
         return self._carteiro.ler_estado()
@@ -112,6 +115,54 @@ class Api:
     def mouse_sono(self, minutos):
         return self._carteiro.executar("mouse", lambda m: m.gravar_sono(int(minutos)))
 
+    # -- efeitos do app (cor ao vivo; só com o app aberto)
+
+    def efeito_app_ligar(self, nome, opcoes):
+        r = self._carteiro.ligar_efeito(str(nome), opcoes or {})
+        if r.get("ok"):
+            self.salvar_preferencia("efeito_app", {"nome": str(nome), "opcoes": opcoes or {}})  # volta ao reabrir
+        return r
+
+    def efeito_app_desligar(self):
+        self.salvar_preferencia("efeito_app", None)
+        return self._carteiro.desligar_efeito()
+
+    def efeito_app_previa(self, nome, opcoes):
+        """Teclas acesas do quadro atual {nome: "RRGGBB"}, para a prévia na tela. Com o efeito ligado vem o que está
+        indo para o teclado; desligado, um efeito só para a prévia (para depois de 5 s sem pedidos)."""
+        if self._carteiro.ultimo_quadro is not None:
+            return teclas_acesas(self._carteiro.ultimo_quadro)
+        classe = EFEITOS_APP.get(str(nome))
+        try:
+            if classe is None:
+                raise ValueError(nome)
+            classe.validar(**(opcoes or {}))
+        except (ValueError, TypeError):
+            return {}
+        p = self._previa
+        if p is None or p["nome"] != nome:
+            if p:
+                p["efeito"].parar()
+            p = self._previa = {"nome": nome, "efeito": classe(**(opcoes or {})), "quando": time.monotonic()}
+            threading.Thread(target=self._vigiar_previa, daemon=True).start()
+        else:
+            p["efeito"].ajustar(**(opcoes or {}))
+        p["quando"] = time.monotonic()
+        return teclas_acesas(p["efeito"].quadro())
+
+    def _vigiar_previa(self):
+        while self._previa and time.monotonic() - self._previa.get("quando", 0) < 5:
+            time.sleep(1)
+        p, self._previa = self._previa, None
+        if p:
+            p["efeito"].parar()
+
+    def _sem_efeito_app(self):
+        """Antes de gravar um efeito no teclado: desliga o efeito do app (senão os quadros cobrem o efeito novo)."""
+        if self._carteiro.ler_estado()["teclado"].get("efeito_app"):
+            self.salvar_preferencia("efeito_app", None)
+            self._carteiro.desligar_efeito()
+
     # -- teclado
 
     def teclado_luz(self, efeito, brilho, velocidade, colorido, cor):
@@ -119,6 +170,7 @@ class Api:
         efeito = int(efeito)
         if not 1 <= efeito <= 18:
             return {"ok": False, "erro": "efeito ainda não suportado pelo app"}
+        self._sem_efeito_app()
 
         def gravar(t):
             cores = cores_teclado()
@@ -132,6 +184,7 @@ class Api:
     def teclado_por_tecla(self, cores=None):
         """Liga a luz por tecla com {tecla: "RRGGBB"} (sem cores = a cópia guardada) e guarda a cópia."""
         cores = {str(k): str(v).upper() for k, v in (cores or cores_por_tecla()).items() if len(str(v)) == 6}
+        self._sem_efeito_app()
 
         def gravar(t):
             t.aplicar_por_tecla(cores)
@@ -207,6 +260,10 @@ def main():
     carteiro = Carteiro()
     carteiro.start()
     saindo = {"sim": False}
+    efeito_salvo = Api(carteiro).preferencias().get("efeito_app")
+    if isinstance(efeito_salvo, dict) and efeito_salvo.get("nome"):  # o efeito do app que estava ligado volta
+        threading.Thread(target=lambda: carteiro.ligar_efeito(efeito_salvo["nome"], efeito_salvo.get("opcoes") or {}),
+                         daemon=True).start()
 
     janela = webview.create_window(
         f"{NOME} — beta {VERSAO}", url=str(pasta_ui() / "index.html"), js_api=Api(carteiro),

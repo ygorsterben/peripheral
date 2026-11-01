@@ -27,9 +27,16 @@ const FX = [
 ];
 const EM_BREVE = [
   ["fixos", "Desligada", "em teste"],
-  ["meus", "Música", "do app · em breve"], ["meus", "Temperatura", "do app · em breve"],
   ["meus", "Mapa de digitação", "do app · em breve"], ["meus", "Aviso", "do app · em breve"],
 ];
+// efeitos do app (cor ao vivo, app/efeitos.py): [id, nome, descrição, tira, modos [[id, nome]]]
+const FX_APP = [
+  ["musica", "Música", "As teclas seguem o som que sai do PC. Só funciona com o app aberto (a bandeja conta).",
+    "linear-gradient(0deg,#2DFF6A 0 35%,#FFD400 35% 65%,#FF2A2A 65%)", [["barras", "Barras"], ["pulso", "Pulso"]]],
+];
+const fxApp = (id) => FX_APP.find((f) => f[0] === id);
+let appSel = null;                                                  // efeito do app aberto no painel
+let appOpcoes = { modo: "barras", sensibilidade: 3, cor: null };    // null = colorido
 const GRUPOS = [["fixos", "Fixos"], ["ondas", "Ondas e cores"], ["toque", "Ao toque"], ["meus", "Criados por você"]];
 const PALETA = ["FF0000", "FF8800", "FFFF00", "00FF00", "00FFFF", "0000FF", "9B4DFF", "FF00FF", "FFFFFF"];
 const SONOS_T = [1, 1.5, 2, 3, 4, 5, 10, 15, 20];
@@ -293,6 +300,8 @@ document.addEventListener("keydown", (ev) => {
 
 // --- liga a prévia ao que está escolhido ---
 function pintarPrevia() {
+  if (!cena) montarCena();
+  if (mostraApp()) { anima = null; return; }  // a prévia vem do app (quadros pedidos abaixo)
   const naLuz = !$("teclado").querySelector('.aba[data-aba="luz"]').hidden;
   const p = naLuz && previa ? previa : (teclado.efeito ? doTeclado(teclado) : null);
   const f = p ? fxDe(p.efeito) : null;
@@ -365,7 +374,7 @@ function desenharLuz() {
     const b = document.createElement("button");
     b.setAttribute("role", "tab"); b.textContent = nome;
     b.setAttribute("aria-selected", String(id === grupo));
-    b.addEventListener("click", () => { grupo = id; desenharLuz(); });
+    b.addEventListener("click", () => { grupo = id; if (id !== "meus") appSel = null; desenharLuz(); pintarPrevia(); });
     return b;
   }));
   const cartoes = FX.filter((f) => f[1] === grupo).map((f) => {
@@ -374,6 +383,15 @@ function desenharLuz() {
     b.innerHTML = `<span class="tira" style="background:${STRIP[f[6]]}"></span><b>${EFEITOS_PT[f[2]] || f[2]}</b><span class="pequeno">${f[2].replace(/_/g, " ")}</span>`;
     b.addEventListener("click", () => escolherEfeito(f[0]));
     return b;
+  });
+  if (grupo === "meus") FX_APP.forEach(([id, nome, , tira]) => {
+    const b = document.createElement("button");
+    const ligado = teclado.efeito_app && teclado.efeito_app.nome === id;
+    b.className = "cartao-efeito"; b.setAttribute("aria-pressed", String(appSel === id));
+    b.innerHTML = `<span class="tira" style="background:${tira}"></span><b>${nome}</b>` +
+      (ligado ? '<span class="ligado">● ligado no teclado</span>' : '<span class="pequeno">efeito do app</span>');
+    b.addEventListener("click", () => abrirApp(id));
+    cartoes.push(b);
   });
   EM_BREVE.filter(([g]) => g === grupo).forEach(([, nome, nota]) => {
     const b = document.createElement("button");
@@ -416,17 +434,116 @@ function desenharLuz() {
     return inp;
   })());
   const mudou = !mesmo(previa, doTeclado(teclado));
-  $("t-gravar").disabled = !mudou || gravandoT;
+  // com um efeito do app ligado, "Gravar" também serve para voltar a um efeito do próprio teclado
+  $("t-gravar").disabled = (!mudou && !teclado.efeito_app) || gravandoT;
   $("t-desfazer").disabled = !mudou || gravandoT;
+  desenharApp();
 }
+
+// a prévia mostra o efeito do app quando ele está aberto no painel, ou ligado e nada diferente foi escolhido
+function mostraApp() {
+  return !!(appSel || (teclado.efeito_app && previa && mesmo(previa, doTeclado(teclado))));
+}
+
+// ---------- efeitos do app (cor ao vivo) ----------
+function abrirApp(id) {
+  appSel = id;
+  const e = teclado.efeito_app;
+  if (e && e.nome === id) appOpcoes = { ...appOpcoes, ...e.opcoes };
+  $("a-erro").textContent = "";
+  desenharLuz();
+  pintarPrevia();
+}
+
+function desenharApp() {
+  const f = appSel && fxApp(appSel);
+  $("t-app").hidden = !f;
+  $("t-app").inert = !f;
+  if (!f) return;
+  const e = teclado.efeito_app, ligado = e && e.nome === appSel;
+  $("a-nome").textContent = f[1];
+  $("a-desc").textContent = f[2];
+  const seg = (alvo, itens, chave) => $(alvo).replaceChildren(...itens.map(([v, rot]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = rot; b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", String(appOpcoes[chave] === v));
+    b.addEventListener("click", () => { appOpcoes[chave] = v; desenharApp(); });
+    return b;
+  }));
+  seg("a-modo", f[4], "modo");
+  seg("a-sens", [1, 2, 3, 4, 5].map((n) => [n, String(n)]), "sensibilidade");
+  $("a-colorido").checked = !appOpcoes.cor;
+  $("a-paleta").replaceChildren(...PALETA.map((hex) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "amostra"; b.style.background = `#${hex}`; b.setAttribute("aria-label", `Cor #${hex}`);
+    b.setAttribute("aria-pressed", String(appOpcoes.cor === hex));
+    b.addEventListener("click", () => { appOpcoes.cor = hex; desenharApp(); });
+    return b;
+  }));
+  const mudou = !ligado || JSON.stringify(e.opcoes) !== JSON.stringify(appOpcoes);
+  $("a-situacao").textContent = !ligado ? "Desligado. Escolha e clique em Ligar; a prévia acima já segue o som."
+    : e.situacao === "ligado" ? "Ligado no teclado." : `Esperando o teclado${e.erro ? `: ${e.erro}` : "…"}`;
+  $("a-ligar").textContent = ligado ? "Aplicar mudanças" : "Ligar no teclado";
+  $("a-ligar").disabled = !mudou;
+  $("a-desligar").disabled = !ligado;
+}
+
+$("a-colorido").addEventListener("change", () => {
+  appOpcoes.cor = $("a-colorido").checked ? null : (PALETA[0]);
+  desenharApp();
+});
+$("a-ligar").addEventListener("click", async () => {
+  $("a-erro").textContent = "";
+  let r;
+  try { r = await window.pywebview.api.efeito_app_ligar(appSel, { ...appOpcoes }); } catch (err) { r = { ok: false, erro: String(err) }; }
+  if (!r || !r.ok) { $("a-erro").textContent = `Não ligou: ${(r && r.erro) || "erro desconhecido"}`; return; }
+  chipT("Efeito do app ligado ✓", "ok");
+  await atualizarTela();
+  desenharLuz();
+});
+$("a-desligar").addEventListener("click", async () => {
+  $("a-erro").textContent = "";
+  chipT("Voltando ao efeito do teclado…", "trabalhando");
+  let r;
+  try { r = await window.pywebview.api.efeito_app_desligar(); } catch (err) { r = { ok: false, erro: String(err) }; }
+  chipT(r && r.ok ? "Efeito do app desligado ✓" : "Não desligou", r && r.ok ? "ok" : "falha");
+  if (!r || !r.ok) $("a-erro").textContent = (r && r.erro) || "erro desconhecido";
+  await atualizarTela();
+  desenharLuz();
+});
+
+// prévia dos efeitos do app: o quadro de verdade (o que vai ou iria para o teclado), ~10 vezes por segundo
+let pedindoPrevia = 0, ultimoApp = "null";
+setInterval(async () => {
+  const nome = appSel || (teclado.efeito_app && teclado.efeito_app.nome);
+  if (!nome || !mostraApp() || !cena || !$("teclado").classList.contains("ativa") || document.hidden) return;
+  if (pedindoPrevia && performance.now() - pedindoPrevia < 3000) return;  // pedido anterior ainda em andamento
+  pedindoPrevia = performance.now();
+  try {
+    const opcoes = appSel ? appOpcoes : teclado.efeito_app.opcoes;
+    const acesas = await window.pywebview.api.efeito_app_previa(nome, { ...opcoes });
+    cena.teclas.forEach((k) => {
+      const h = acesas[k.nome];
+      const [r, g, b] = h ? hexRgb(h) : [0, 0, 0];
+      k.el.style.setProperty("--c", `rgb(${r} ${g} ${b})`);
+      k.el.style.setProperty("--a", h ? "1" : "0");
+    });
+  } catch (err) { /* a ponte ainda não está pronta */ }
+  pedindoPrevia = 0;
+}, 100);
 
 function atualizarLuz(redesenhar = true) {
   if (redesenhar) desenharLuz();
-  else { const mudou = !mesmo(previa, doTeclado(teclado)); $("t-gravar").disabled = !mudou; $("t-desfazer").disabled = !mudou; }
+  else {
+    const mudou = !mesmo(previa, doTeclado(teclado));
+    $("t-gravar").disabled = (!mudou && !teclado.efeito_app) || gravandoT;  // mesma regra de desenharLuz
+    $("t-desfazer").disabled = !mudou || gravandoT;
+  }
   pintarPrevia();
 }
 
 function escolherEfeito(hw) {
+  appSel = null;  // saiu do painel do efeito do app (o efeito continua ligado até gravar outro ou desligar)
   // ao trocar de efeito, cada efeito traz o próprio brilho/velocidade/cor guardados no teclado
   const e = (teclado.efeitos || {})[hw] || {};
   previa = { efeito: hw, brilho: e.brilho ?? previa.brilho, velocidade: e.velocidade ?? previa.velocidade,
@@ -491,9 +608,15 @@ function mostrarTeclado(t) {
   if (!gravandoT && !$("t-chip").textContent && t.lido_em) chipT(`Lido às ${hora(t.lido_em)}`);
   iluminarTeclado(t);
   if (t.efeito && fxDe(t.efeito)) {
-    if (!previa) { previa = doTeclado(t); grupo = null; desenharLuz(); pintarPrevia(); }
+    if (!previa) {
+      previa = doTeclado(t); grupo = null;
+      if (t.efeito_app) { grupo = "meus"; appSel = t.efeito_app.nome; appOpcoes = { ...appOpcoes, ...t.efeito_app.opcoes }; }
+      desenharLuz(); pintarPrevia();
+    }
     else atualizarLuz(false); // não redesenha a cada 2 s (fecharia o seletor de cor aberto)
   }
+  const app = JSON.stringify(t.efeito_app || null);  // efeito do app ligou/desligou/mudou de situação
+  if (app !== ultimoApp) { ultimoApp = app; if (previa) desenharLuz(); pintarPrevia(); }
   desenharGeral(t);
 }
 

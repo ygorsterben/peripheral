@@ -78,6 +78,7 @@ ESPERA_MAX = 0xFFFF
 
 
 VEZES_MAX = 99
+QUADRO_AO_VIVO = 126 * 3  # cor ao vivo: R G B de cada índice da matriz
 
 
 # Modo de repetição (2º byte da tecla): capturas/teclado_macro_repeticao.pcap (3x = 03 01 03 00),
@@ -280,6 +281,14 @@ class Teclado:
         0x49 = 490 bytes (o resto do bloco de 512 não volta)."""
         return self._ler_cores()
 
+    def quadro_ao_vivo(self, quadro):
+        """Cor ao vivo (só enquanto o app manda; o efeito gravado volta ao regravar o bloco com gravar_bloco).
+        `quadro` = 126 × (R G B) na ordem de INDICE_TECLA. Cabo = cmd 0x08 (quadro inteiro); receptor = cmd 0x88
+        (lista de grupos `R G B N idx…`, teclas fora da lista apagadas). Ver docs/protocolo_teclado.md."""
+        if len(quadro) != QUADRO_AO_VIVO:
+            raise ValueError(f"o quadro tem {QUADRO_AO_VIVO} bytes")
+        self._quadro_ao_vivo(bytes(quadro))
+
     def gravar_macros(self, bloco):
         """Grava o conjunto de macros (montar_macros). Antes, a tabela de teclas com `entrada_macro`."""
         self._gravar_macros(bytes(bloco))
@@ -354,6 +363,9 @@ class TecladoCabo(Teclado):
     def _ler_cores(self):
         self._pedir(bytes([0x06, 0x8A, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02]))
         return self._resposta(0x8A)[:512]
+
+    def _quadro_ao_vivo(self, quadro):  # capturas/teclado_musica_cabo.pcap
+        self._pedir(bytes([0x06, 0x08, 0x00, 0x00, 0x01, 0x00, QUADRO_AO_VIVO & 0xFF, QUADRO_AO_VIVO >> 8]), quadro)
 
     def gravar_por_tecla(self, planos):
         self._pedir(bytes([0x06, 0x06, 0x00, 0x00, 0x01, 0x00, 0x80, 0x01]), planos)
@@ -469,6 +481,30 @@ class TecladoSemFio(Teclado):
 
     def _ler_cores(self):
         return self._pedir_varios(0x49)  # 35 pacotes = 490 bytes (testado no receptor em 2026-11-01)
+
+    def _quadro_ao_vivo(self, quadro):  # capturas/teclado_musica_dongle.pcap
+        if self.conexao == "bluetooth":
+            raise ErroPeriferico("a cor ao vivo não funciona pelo Bluetooth (os pacotes se perdem); use o cabo ou o receptor")
+        grupos = {}
+        for i in range(126):
+            rgb = quadro[3 * i:3 * i + 3]
+            if any(rgb):
+                grupos.setdefault(rgb, []).append(i)
+        dados = b"".join(rgb + bytes([len(idx)]) + bytes(idx) for rgb, idx in grupos.items())
+        if not dados:  # tudo apagado: o pacote que o software manda no silêncio
+            pacotes = [(0x23, b"\0\0\0")]
+        else:
+            pacotes = [(0x10 + len(dados[i:i + 14]), dados[i:i + 14]) for i in range(0, len(dados), 14)]
+        for n, (tipo, pedaco) in enumerate(pacotes):
+            p = bytearray(20)
+            p[0:5] = bytes([0x13, 0x88, len(pacotes), n, tipo])
+            p[5:5 + len(pedaco)] = pedaco
+            p[19] = sum(p[:19]) & 0xFF
+            self._enviar(bytes(p))
+            time.sleep(0.006)  # o software espaça ~12 ms; sem pausa o receptor pode perder pacotes
+        self._ao_vivo_n = getattr(self, "_ao_vivo_n", 0) + 1
+        if self._ao_vivo_n % 30 == 0:
+            self._descartar()  # esvazia os ecos acumulados
 
     def gravar_por_tecla(self, planos):
         self._gravar_varios(0x02, planos)  # 28 pacotes (capturas/teclado_selfdefine_dongle.pcap)

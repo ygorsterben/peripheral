@@ -236,6 +236,23 @@ window.addEventListener("unhandledrejection", (e) => __reg(`PROMESSA ${e.reason}
 <button class="botao" id="t-desfazer" disabled>Desfazer</button>
 <button class="botao primario" id="t-gravar" disabled>Gravar no teclado</button>
 </span>
+<!-- efeito do app (cor ao vivo): cobre o painel inteiro, para a altura da tela não mudar -->
+<div class="painel-app" id="t-app" hidden>
+<span class="cabeca"><h2 id="a-nome">Música</h2><span class="pequeno">efeito do app</span></span>
+<span class="pequeno" id="a-desc"></span>
+<div class="campo"><span class="rotulo-campo">Modo</span><div class="segmentos" id="a-modo" role="radiogroup" aria-label="Modo"></div></div>
+<div class="campo"><span class="rotulo-campo">Sensibilidade</span><div class="segmentos" id="a-sens" role="radiogroup" aria-label="Sensibilidade"></div></div>
+<div class="campo"><span class="rotulo-campo">Cor</span>
+<div class="paleta" id="a-paleta"></div>
+<label class="linha-check"><input type="checkbox" id="a-colorido"><span>Colorido</span></label>
+</div>
+<span class="pequeno" id="a-situacao"></span>
+<div class="erro" id="a-erro"></div>
+<span class="botoes" style="margin-top: auto">
+<button class="botao" id="a-desligar">Desligar</button>
+<button class="botao primario" id="a-ligar">Ligar no teclado</button>
+</span>
+</div>
 </section>
 </div>
 </div>

@@ -1,6 +1,6 @@
 # Peripheral — Gerenciador de Periféricos
 
-**Versão: build beta 1.0** (`1.0.0b1`) · Windows 11 · licença [GPL-3.0](LICENSE)
+**Versão: build beta 1.0** (`1.0.0b2`) · Windows 11 · licença [GPL-3.0](LICENSE)
 
 App leve que configura o teclado **Aula F99 Pro** e o mouse **Fire Phoenix BK-R6X** sem os softwares oficiais.
 Os fabricantes não publicam o protocolo: ele foi descoberto gravando pela USB (USBPcap + Wireshark) o que os
@@ -20,6 +20,8 @@ softwares oficiais mandam, e reimplementado em Python com hidapi. O protocolo es
 - **Macros gravadas no teclado** (rodam sem o app): sequências com espera, Ctrl/Shift/Alt/Win, repetir N vezes,
   enquanto segurar ou até apertar outra tecla
 - Tempo de sono e debounce
+- **Efeito Música** (feito pelo app): as teclas seguem o som do PC, em barras de espectro ou pulsando com o
+  grave. Só funciona com o app aberto (a bandeja conta), pelo cabo ou pelo receptor
 
 O app fica na bandeja, pode iniciar com o Windows e lê os aparelhos sozinho.
 
@@ -28,7 +30,7 @@ O app fica na bandeja, pode iniciar com o Windows e lê os aparelhos sozinho.
 Precisa do Python 3.12.
 
 ```powershell
-py -m pip install -r requirements.txt          # app: hidapi, pywebview, pystray, pillow
+py -m pip install -r requirements.txt          # app: hidapi, pywebview, pystray, pillow, soundcard, numpy
 py -m pip install -r requirements-dev.txt      # + pyinstaller, para gerar o .exe
 ```
 

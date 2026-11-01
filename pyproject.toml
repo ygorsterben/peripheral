@@ -1,6 +1,6 @@
 [project]
 name = "gerenciador-de-perifericos"
-version = "1.0.0b1"  # build beta 1.0
+version = "1.0.0b2"  # build beta 1.0, segunda versão
 description = "Configura o teclado Aula F99 Pro e o mouse Fire Phoenix BK-R6X no Windows 11"
 readme = "README.md"
 requires-python = ">=3.12"
