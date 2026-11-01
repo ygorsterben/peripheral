@@ -89,3 +89,72 @@ def definir_inicio_com_windows(ligar):
                 winreg.DeleteValue(k, VALOR_RUN)
             except FileNotFoundError:
                 pass
+
+
+# ---------- barra de tarefas, ícone e atalho ----------
+ID_APP = "Peripheral.GerenciadorPerifericos"  # identidade própria na barra de tarefas (não agrupa com o Python)
+ARQUIVO_ICONE = PASTA_DADOS / "icone.ico"
+
+
+def definir_identidade():
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(ID_APP)
+    except (AttributeError, OSError):
+        pass
+
+
+def gerar_icone(imagem):
+    """Grava o ícone (PIL.Image) em %APPDATA% como .ico, para a janela/barra de tarefas e o atalho."""
+    try:
+        PASTA_DADOS.mkdir(parents=True, exist_ok=True)
+        imagem.save(ARQUIVO_ICONE, sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+        return str(ARQUIVO_ICONE)
+    except OSError:
+        return None
+
+
+def pasta_area_de_trabalho():
+    """A área de trabalho de verdade (pode estar no OneDrive), pelo Windows (SHGetKnownFolderPath)."""
+    class GUID(ctypes.Structure):
+        _fields_ = [("a", ctypes.c_uint32), ("b", ctypes.c_uint16), ("c", ctypes.c_uint16), ("d", ctypes.c_ubyte * 8)]
+    desktop = GUID(0xB4BFCC3A, 0xDB2C, 0x424C, (ctypes.c_ubyte * 8)(0xB0, 0x29, 0x7F, 0xE9, 0x9A, 0x87, 0xC6, 0x41))
+    caminho = ctypes.c_wchar_p()
+    if ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(desktop), 0, None, ctypes.byref(caminho)) != 0:
+        return Path.home() / "Desktop"
+    try:
+        return Path(caminho.value)
+    finally:
+        ctypes.windll.ole32.CoTaskMemFree(caminho)
+
+
+def criar_atalho_area_de_trabalho(nome="Gerenciador de Periféricos"):
+    """Cria (ou atualiza) o atalho na área de trabalho apontando para o app que está rodando. True se deu certo."""
+    import subprocess
+    destino = pasta_area_de_trabalho() / f"{nome}.lnk"
+    if getattr(sys, "frozen", False):
+        alvo, args, icone, pasta = sys.executable, "", f"{sys.executable},0", str(Path(sys.executable).parent)
+    else:
+        raiz = Path(__file__).resolve().parent.parent
+        alvo, args = str(Path(sys.executable).with_name("pythonw.exe")), f'"{raiz / "iniciar.py"}"'
+        icone, pasta = str(ARQUIVO_ICONE), str(raiz)
+    aspas = lambda s: s.replace("'", "''")  # noqa: E731  (texto entre aspas simples do PowerShell)
+    script = (f"$s=(New-Object -ComObject WScript.Shell).CreateShortcut('{aspas(str(destino))}');"
+              f"$s.TargetPath='{aspas(alvo)}';$s.Arguments='{aspas(args)}';$s.WorkingDirectory='{aspas(pasta)}';"
+              f"$s.IconLocation='{aspas(icone)}';$s.Description='Configura o mouse e o teclado';$s.Save()")
+    r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+                       capture_output=True, creationflags=0x08000000)  # sem janela de console
+    return r.returncode == 0 and destino.exists()
+
+
+def primeira_vez(prefs, salvar):
+    """Padrões da primeira execução: iniciar com o Windows (na bandeja) ligado; no .exe, atalho na área de trabalho.
+    Cada um só uma vez (se o usuário desligar ou apagar o atalho, o app respeita). No .exe, mantém o "iniciar com o
+    Windows" apontando para o .exe que está rodando (se ele foi movido de pasta)."""
+    if not prefs.get("inicio_padrao_feito"):
+        definir_inicio_com_windows(True)
+        salvar("inicio_padrao_feito", True)
+    elif getattr(sys, "frozen", False) and inicia_com_windows():
+        definir_inicio_com_windows(True)
+    if getattr(sys, "frozen", False) and not prefs.get("atalho_feito"):
+        if criar_atalho_area_de_trabalho():
+            salvar("atalho_feito", True)

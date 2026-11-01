@@ -24,7 +24,8 @@ from .servico import (PASTA_DADOS, Carteiro, cores_por_tecla, cores_teclado, gua
                       guardar_cores_teclado, guardar_macros, guardar_teclas_trocadas, macros_guardadas)
 
 ARQUIVO_PREFERENCIAS = PASTA_DADOS / "preferencias.json"
-from .sistema import definir_inicio_com_windows, inicia_com_windows, instancia_unica, registrar
+from .sistema import (criar_atalho_area_de_trabalho, definir_identidade, definir_inicio_com_windows, gerar_icone,
+                      inicia_com_windows, instancia_unica, primeira_vez, registrar)
 
 
 def pasta_ui():
@@ -256,6 +257,13 @@ def main():
     sys.excepthook = lambda tipo, valor, tb: registrar(f"ERRO {tipo.__name__}: {valor}")
     threading.excepthook = lambda a: registrar(f"ERRO na thread {a.thread.name}: {a.exc_type.__name__}: {a.exc_value}")
     registrar(f"{NOME} {VERSAO} iniciado{' (bandeja)' if no_inicio else ''}")
+    definir_identidade()  # antes de criar janelas: a barra de tarefas mostra o app com o próprio ícone
+    icone_janela = gerar_icone(imagem_icone(256))
+    try:
+        api_prefs = Api(None)
+        primeira_vez(api_prefs.preferencias(), api_prefs.salvar_preferencia)
+    except OSError as e:
+        registrar(f"primeira execução: {e}")
 
     carteiro = Carteiro()
     carteiro.start()
@@ -332,11 +340,12 @@ def main():
         pystray.MenuItem("Luz do teclado", pystray.Menu(itens_brilho)),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Iniciar com o Windows", alternar_inicio, checked=lambda _: inicia_com_windows()),
+        pystray.MenuItem("Criar atalho na área de trabalho", lambda: em_fundo(criar_atalho_area_de_trabalho)),
         pystray.MenuItem("Sair", sair),
     )
     icone = pystray.Icon("gerenciador_perifericos", imagem_icone(), f"{NOME} (beta {VERSAO})", menu)
     icone.run_detached()
-    webview.start()
+    webview.start(icon=icone_janela)
     carteiro.parar()
     if not saindo["sim"]:
         icone.stop()
