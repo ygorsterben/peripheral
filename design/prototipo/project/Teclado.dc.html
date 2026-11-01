@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Teclado F99 Pro</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2647C9}a:hover{color:#1A3396}
+button,select{font-family:inherit}
+button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #2647C9;outline-offset:2px}
+@keyframes matiz{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+@keyframes respirar{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes cintilar{0%,60%,100%{opacity:.08}70%{opacity:1}}
+@keyframes toque{0%,100%{opacity:0}2%{opacity:1}12%{opacity:0}}
+@keyframes barra{from{opacity:.05}to{opacity:1}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 1120px; height: 800px; box-sizing: border-box; display: flex; background: #E4E6E3; color: #1F2328; font-family: 'Archivo', 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+
+<nav style="width: 232px; flex-shrink: 0; box-sizing: border-box; padding: 24px 16px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #C6CAC6">
+<a href="Inicio.dc.html" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; margin-bottom: 8px; min-height: 44px; font-size: 15px; font-weight: 600; color: #1F2328; text-decoration: none">← Periféricos</a>
+<a href="Main.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px; border-radius: 10px; color: #1F2328; text-decoration: none; min-height: 44px">
+<span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-weight: 600; font-size: 15px">Mouse</span><span style="font-variant-numeric: tabular-nums; font-size: 13px">100 %</span></span>
+<span style="height: 4px; border-radius: 2px; background: #D3D7D3; display: flex"><span style="width: 100%; border-radius: 2px; background: #1F2328"></span></span>
+<span style="font-size: 13px; color: #5B6168">BK-R6X, pelo cabo</span>
+</a>
+<a href="Teclado.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px; border-radius: 10px; background: #F5F6F4; color: #1F2328; text-decoration: none; min-height: 44px">
+<span style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-weight: 600; font-size: 15px">Teclado</span><span style="font-variant-numeric: tabular-nums; font-size: 13px">100 %</span></span>
+<span style="height: 4px; border-radius: 2px; background: #D3D7D3; display: flex"><span style="width: 100%; border-radius: 2px; background: #1F2328"></span></span>
+<span style="font-size: 13px; color: #5B6168">F99 Pro, pelo receptor</span>
+</a>
+<div style="flex-grow: 1"></div>
+<div style="padding: 0 12px; font-size: 13px; color: #5B6168">Fica na bandeja ao fechar</div>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 24px 36px; display: flex; flex-direction: column; gap: 18px">
+<header style="display: flex; justify-content: space-between; align-items: flex-end">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-size: 40px; line-height: 1; font-weight: 700; font-stretch: 75%; letter-spacing: -0.01em">F99 Pro</h1>
+<span style="color: #5B6168">Conectado pelo receptor 2,4 GHz. Firmware 3.0.0.</span>
+</div>
+<div role="tablist" aria-label="Seções do teclado" style="display: flex; gap: 4px; background: #D6D9D5; border-radius: 10px; padding: 4px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button role="tab" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+</sc-for>
+</div>
+</header>
+
+<section aria-label="Desenho do teclado" style="display: flex; justify-content: center">
+<div style="{{caseStyle}}">
+<span style="{{ledStyle}}"></span>
+<sc-for list="{{glows}}" as="g" hint-placeholder-count="108">
+<span aria-hidden="true" style="{{g.style}}"></span>
+</sc-for>
+<sc-for list="{{keys}}" as="k" hint-placeholder-count="108">
+<button onClick="{{k.pick}}" aria-label="{{k.aria}}" style="{{k.style}}">{{k.label}}</button>
+</sc-for>
+<button onClick="{{knob.pick}}" aria-label="Roda de volume" style="{{knob.style}}"><span style="{{knob.inner}}"></span></button>
+</div>
+</section>
+
+<sc-if value="{{showLuz}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 18px; flex-grow: 1; min-height: 0">
+<section style="flex-grow: 1; min-width: 0; background: #F5F6F4; border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 12px">
+<div role="tablist" aria-label="Grupos de efeitos" style="display: flex; gap: 4px; border-bottom: 1px solid #DDE0DC">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<button role="tab" aria-selected="{{g.on}}" onClick="{{g.pick}}" style="{{g.style}}">{{g.label}}</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="8">
+<button onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="{{c.style}}">
+<span aria-hidden="true" style="{{c.strip}}"></span>
+<span style="font-weight: 600; font-size: 14px; line-height: 1.2">{{c.label}}</span>
+<span style="{{c.subStyle}}">{{c.sub}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section aria-live="polite" style="width: 300px; flex-shrink: 0; background: #F5F6F4; border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><h2 style="margin: 0; font-size: 18px; font-weight: 700; font-stretch: 75%">{{sel.label}}</h2><span style="font-size: 12px; color: #5B6168">{{sel.sub}}</span></span>
+<span style="font-size: 13px; color: #3E444B">{{sel.desc}}</span>
+</div>
+
+<sc-if value="{{sel.isApp}}" hint-placeholder-val="{{ false }}">
+<span style="display: flex; flex-direction: column; gap: 6px; background: #FFF4E5; border: 1px solid #F0C98A; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #6B3F05">
+<b style="font-weight: 600">Efeito do app: em teste</b>
+Funciona só com o app aberto e o teclado no cabo. Ainda falta confirmar no seu teclado o modo de cor direta.
+</span>
+</sc-if>
+
+<sc-if value="{{sel.isPaint}}" hint-placeholder-val="{{ false }}">
+<a href="LuzPorTecla.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 10px; background: #2647C9; color: #FFFFFF; font-weight: 600; text-decoration: none">Pintar tecla por tecla</a>
+</sc-if>
+
+<sc-if value="{{sel.hasBright}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">Brilho</span>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{bright}}" as="s" hint-placeholder-count="5">
+<button onClick="{{s.pick}}" aria-label="{{s.aria}}" style="{{s.style}}">{{s.label}}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{sel.hasSpeed}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">Velocidade</span>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{speed}}" as="s" hint-placeholder-count="5">
+<button onClick="{{s.pick}}" aria-label="{{s.aria}}" style="{{s.style}}">{{s.label}}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{sel.hasColor}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-weight: 600">Cor</span>
+<div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{swatches}}" as="c" hint-placeholder-count="8">
+<button onClick="{{c.pick}}" aria-label="{{c.aria}}" style="{{c.style}}"></button>
+</sc-for>
+</div>
+<sc-if value="{{sel.hasRandom}}" hint-placeholder-val="{{ true }}">
+<label style="display: flex; gap: 8px; align-items: center; min-height: 32px; cursor: pointer">
+<input type="checkbox" checked="{{random}}" onChange="{{toggleRandom}}" style="width: 18px; height: 18px; accent-color: #2647C9; margin: 0">
+<span>Cores aleatórias</span>
+</label>
+</sc-if>
+</div>
+</sc-if>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{showTeclas}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 20px; flex-grow: 1; min-height: 0">
+<section style="flex-grow: 1; background: #F5F6F4; border-radius: 14px; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600">Tecla {{selKey}}</h2>
+<span style="color: #5B6168; font-size: 13px">Clique numa tecla no desenho para escolher outra</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="acao" style="font-weight: 500">Quando apertar, fazer</label>
+<select id="acao" style="min-height: 44px; border: 1px solid #C6CAC6; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font-size: 14px; color: #1F2328">
+<option selected="selected">O padrão desta tecla</option><option>Outra tecla…</option><option>Atalho (ex.: Ctrl+C)</option><option>Macro gravada</option><option>Tecla multimídia</option><option>Desativar</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="camada" style="font-weight: 500">Vale para</label>
+<select id="camada" style="min-height: 44px; border: 1px solid #C6CAC6; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font-size: 14px; color: #1F2328">
+<option selected="selected">Tecla sozinha</option><option>Fn + tecla</option>
+</select>
+</div>
+</div>
+<div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: auto">
+<button style="border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 10px; padding: 0 16px; min-height: 44px; color: #1F2328; cursor: pointer">Voltar ao padrão</button>
+<button style="border: 0; background: #2647C9; border-radius: 10px; padding: 0 18px; min-height: 44px; color: #FFFFFF; font-weight: 600; cursor: pointer">Gravar no teclado</button>
+</div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{showGeral}}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+<section style="background: #F5F6F4; border-radius: 14px; padding: 18px 22px; display: flex; flex-direction: column; gap: 8px">
+<label for="tsono" style="font-size: 15px; font-weight: 600">Apagar sem uso depois de</label>
+<select id="tsono" style="min-height: 44px; border: 1px solid #C6CAC6; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font-size: 14px; color: #1F2328">
+<option>1 minuto</option><option>1 min e meio</option><option>2 minutos</option><option>3 minutos</option><option>4 minutos</option><option selected="selected">5 minutos</option><option>10 minutos</option><option>15 minutos</option><option>20 minutos</option>
+</select>
+<span style="font-size: 13px; color: #5B6168">Só sem fio. Qualquer tecla acorda.</span>
+</section>
+<section style="background: #F5F6F4; border-radius: 14px; padding: 18px 22px; display: flex; flex-direction: column; gap: 8px">
+<label for="deb" style="font-size: 15px; font-weight: 600">Filtro de toque duplo</label>
+<select id="deb" style="min-height: 44px; border: 1px solid #C6CAC6; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font-size: 14px; color: #1F2328">
+<option>Estágio 1 (mais rápido)</option><option selected="selected">Estágio 2</option><option>Estágio 3</option><option>Estágio 4 (mais seguro)</option>
+</select>
+<span style="font-size: 13px; color: #5B6168">Suba se uma tecla digitar duas vezes.</span>
+</section>
+<section style="background: #F5F6F4; border-radius: 14px; padding: 18px 22px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600">Conexão</h2>
+<span>Receptor 2,4 GHz na USB frontal</span>
+<span style="font-size: 13px; color: #5B6168">No Bluetooth as leituras demoram cerca de 20 s; o app usa a cópia guardada no PC.</span>
+</section>
+</div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1120,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'luz', group: 'ondas', effect: 'neon', bright: 4, speed: 3, color: '#9B4DFF', random: true, selKey: 'Caps' };
+  }
+  renderVals() {
+    const s = this.state;
+    const tabs = [['luz', 'Luz'], ['teclas', 'Teclas'], ['geral', 'Geral']].map(([id, label]) => {
+      const on = s.tab === id;
+      return { label, pick: () => this.setState({ tab: id }), style: 'min-height: 36px; padding: 0 18px; border: 0; border-radius: 7px; cursor: pointer; font-size: 14px; font-weight: ' + (on ? 600 : 400) + '; background: ' + (on ? '#FFFFFF' : 'transparent') + '; color: ' + (on ? '#1F2328' : '#3E444B') };
+    });
+
+    // Layout real do AULA F99 Pro (keyimg.png do software oficial + fotos): bloco principal 15u,
+    // coluna Home/PgUp/PgDn, teclado numérico, setas rebaixadas, roda de volume no canto.
+    const P = 37, GAP = 4, PAD = 16;
+    const NAV = 15.25, NUM = 16.5;
+    const Y = [0, 1.3, 2.3, 3.3, 4.3, 5.3];
+    const L = [];
+    const put = (label, x, r, w = 1, h = 1, name) => L.push({ label, x, r, w, h, name: name || label });
+    // fileira das F
+    put('Esc', 0, 0);
+    ['F1', 'F2', 'F3', 'F4'].forEach((k, i) => put(k, 2 + i, 0));
+    ['F5', 'F6', 'F7', 'F8'].forEach((k, i) => put(k, 6.5 + i, 0));
+    ['F9', 'F10', 'F11', 'F12'].forEach((k, i) => put(k, 11 + i, 0));
+    put('Del', NAV, 0, 1, 1, 'Delete'); put('Scroll', NUM, 0, 1, 1, 'Scroll Lock'); put('Calc', NUM + 1, 0, 1, 1, 'Calculadora');
+    // números
+    ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='].forEach((k, i) => put(k, i, 1));
+    put('Backspace', 13, 1, 2); put('Home', NAV, 1);
+    put('Num', NUM, 1, 1, 1, 'Num Lock'); put('/', NUM + 1, 1, 1, 1, 'Num /'); put('*', NUM + 2, 1, 1, 1, 'Num *'); put('−', NUM + 3, 1, 1, 1, 'Num −');
+    // Q
+    put('Tab', 0, 2, 1.5);
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']'].forEach((k, i) => put(k, 1.5 + i, 2));
+    put('\\', 13.5, 2, 1.5); put('PgUp', NAV, 2);
+    ['7', '8', '9'].forEach((k, i) => put(k, NUM + i, 2, 1, 1, 'Num ' + k)); put('+', NUM + 3, 2, 1, 2, 'Num +');
+    // A
+    put('Caps', 0, 3, 1.75, 1, 'Caps Lock');
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', "'"].forEach((k, i) => put(k, 1.75 + i, 3));
+    put('Enter', 12.75, 3, 2.25); put('PgDn', NAV, 3);
+    ['4', '5', '6'].forEach((k, i) => put(k, NUM + i, 3, 1, 1, 'Num ' + k));
+    // Z
+    put('Shift', 0, 4, 2.25, 1, 'Shift esquerdo');
+    ['Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/'].forEach((k, i) => put(k, 2.25 + i, 4));
+    put('Shift', 12.25, 4, 1.75, 1, 'Shift direito'); put('↑', 14.25, 4, 1, 1, 'Seta para cima');
+    ['1', '2', '3'].forEach((k, i) => put(k, NUM + i, 4, 1, 1, 'Num ' + k)); put('Enter', NUM + 3, 4, 1, 2, 'Enter do numérico');
+    // espaço
+    put('Ctrl', 0, 5, 1.25); put('Win', 1.25, 5, 1.25); put('Alt', 2.5, 5, 1.25, 1, 'Alt esquerdo');
+    put('', 3.75, 5, 6.25, 1, 'Espaço'); put('Alt', 10, 5, 1, 1, 'Alt direito'); put('Fn', 11, 5, 1.25);
+    put('←', 13.25, 5, 1, 1, 'Seta para a esquerda'); put('↓', 14.25, 5, 1, 1, 'Seta para baixo'); put('→', NAV, 5, 1, 1, 'Seta para a direita');
+    put('0', NUM, 5, 2, 1, 'Num 0'); put('.', NUM + 2, 5, 1, 1, 'Num .');
+
+    // teclas em degradê: claras em cima, grafite embaixo (como as do usuário)
+    const caps = ['#D9DAD3', '#C4C7C2', '#A2A7A5', '#7A8180', '#5A6162', '#454A4D'];
+    const ink = ['#5B5F63', '#575C60', '#3E4347', '#E6E8E6', '#E6E8E6', '#E6E8E6'];
+    const W = 20.5;
+
+    // Efeitos do firmware: nome original (Text/en/text.xml), hw = nº do efeito no bloco (idx 10),
+    // flags do KB.ini LedOptN = hw, nome, velocidade, brilho, direção, aleatório, cor.
+    // anim = só para a prévia no desenho (o efeito real é feito pelo teclado).
+    const FX = [
+      // id, grupo, nome PT, original, hw, vel, aleat, cor, anim, descrição
+      ['fixo', 'fixos', 'Cor fixa', 'Fixed on', 1, 0, 1, 1, 'fixo', 'Todas as teclas acesas numa cor, sem movimento.'],
+      ['respirar', 'fixos', 'Respirar', 'Respire', 2, 1, 1, 1, 'respirar', 'A luz acende e apaga devagar, como respiração.'],
+      ['portecla', 'fixos', 'Por tecla', 'Self-define', 21, 0, 0, 0, 'portecla', 'Cada tecla com a cor que você pintar. Fica gravado no teclado.'],
+      ['off', 'fixos', 'Desligada', 'OFF', 0, 0, 0, 0, 'off', 'Luz apagada. Economiza bateria.'],
+      ['arcoiris', 'ondas', 'Arco-íris', 'Rainbow', 3, 1, 0, 0, 'onda', 'Faixas de todas as cores passando pelo teclado.'],
+      ['roda', 'ondas', 'Roda de cores', 'Rainbow wheel', 6, 1, 1, 1, 'radial', 'As cores giram em volta do centro do teclado.'],
+      ['neon', 'ondas', 'Fluxo neon', 'Neon stream', 11, 1, 1, 1, 'onda', 'Uma onda de cor corre de um lado ao outro.'],
+      ['senoide', 'ondas', 'Onda', 'Sine wave', 13, 1, 1, 1, 'onda', 'Ondas suaves de luz atravessando as fileiras.'],
+      ['varredura', 'ondas', 'Varredura', 'Retinue scanning', 14, 1, 1, 1, 'onda', 'Uma faixa de luz varre o teclado e volta.'],
+      ['moinho', 'ondas', 'Moinho', 'Rotating windmill', 15, 1, 0, 0, 'radial', 'Pás de cor girando a partir do centro.'],
+      ['cascata', 'ondas', 'Cascata', 'Colorful waterfall', 16, 1, 0, 0, 'onda', 'Cores descendo como uma cachoeira.'],
+      ['tempestade', 'ondas', 'Redemoinho', 'Rotating storm', 18, 1, 1, 1, 'radial', 'Um redemoinho de cor girando rápido.'],
+      ['reacao', 'toque', 'Reação', 'Reaction', 12, 1, 1, 1, 'toque', 'Só acende a tecla que você aperta.'],
+      ['ondulacao', 'toque', 'Ondulação', 'Ripples shining', 7, 1, 1, 1, 'toque', 'Cada toque solta uma onda em volta da tecla.'],
+      ['gotas', 'toque', 'Gotas de chuva', 'Raindrops', 5, 1, 1, 1, 'estrelas', 'Pontos de luz caindo pelas colunas.'],
+      ['flash', 'toque', 'Clarão', 'Flash away', 4, 1, 1, 1, 'toque', 'A tecla tocada pisca forte e some.'],
+      ['sombra', 'toque', 'Sombra', 'Shadow disappear', 9, 1, 1, 1, 'toque', 'Tudo aceso; a tecla tocada apaga e volta aos poucos.'],
+      ['florescer', 'toque', 'Florescer', 'Blossoming', 17, 1, 0, 0, 'radial', 'Cores se abrindo a partir das teclas.'],
+      ['estrelas', 'toque', 'Estrelas', 'Stars twinkle', 8, 1, 1, 1, 'estrelas', 'Teclas aleatórias piscando como estrelas.'],
+      ['cobra', 'toque', 'Cobrinha', 'Retro snake', 10, 1, 1, 1, 'onda', 'Uma linha de luz andando pelo teclado, como o jogo da cobrinha.'],
+      // efeitos novos, feitos pelo app (modo de cor direta, ainda não testado no teclado do usuário)
+      ['musica', 'meus', 'Música', 'novo · do app', -1, 1, 0, 1, 'musica', 'As colunas sobem e descem com o som que está tocando no PC.'],
+      ['cpu', 'meus', 'Temperatura', 'novo · do app', -1, 0, 0, 0, 'cpu', 'O teclado vai de azul (frio) a vermelho (quente) conforme a CPU esquenta.'],
+      ['digitar', 'meus', 'Mapa de digitação', 'novo · do app', -1, 0, 0, 0, 'calor', 'As teclas que você mais usa ficam mais quentes.'],
+      ['aviso', 'meus', 'Aviso', 'novo · do app', -1, 0, 0, 1, 'respirar', 'O teclado pisca numa cor quando chega uma notificação.']
+    ];
+    const GROUPS = [['fixos', 'Fixos'], ['ondas', 'Ondas e cores'], ['toque', 'Ao toque'], ['meus', 'Criados por você']];
+    const fx = FX.find((f) => f[0] === s.effect) || FX[6];
+    const [fid, , fname, forig, fhw, fvel, frand, fcor, fanim, fdesc] = fx;
+    const isApp = fhw < 0;
+    const useRandom = frand && s.random;
+    const base = !fcor || useRandom ? null : s.color;
+    const DUR = [6, 4.5, 3.2, 2.2, 1.4][s.speed];
+    const lit = s.tab === 'luz' && fid !== 'off';
+    const level = 30 + s.bright * 17;
+    const DESTAQUE = ['W', 'A', 'S', 'D', 'Seta para cima', 'Seta para baixo', 'Seta para a esquerda', 'Seta para a direita'];
+    const pseudo = (i) => ((i * 7919) % 97) / 97;
+    const glows = [];
+    const keys = L.map((k, i) => {
+      const left = PAD + Math.round(k.x * P), top = PAD + Math.round(Y[k.r] * P);
+      const w = Math.round(k.w * P) - GAP, h = Math.round(k.h * P) - GAP;
+      const cx = (k.x + k.w / 2) / W, cy = (Y[k.r] + k.h / 2) / 6.3;
+      let c = base || 'hsl(' + Math.round(cx * 300) + ' 95% 60%)';
+      let anim = 'none', fgc = c, alpha = level;
+      if (fanim === 'portecla') c = fgc = DESTAQUE.includes(k.name) ? '#FF8800' : '#9B4DFF';
+      if (fanim === 'onda') { if (!base) c = '#FF2A2A'; anim = (base ? 'respirar ' : 'matiz ') + DUR + 's linear ' + (-cx * DUR).toFixed(2) + 's infinite'; }
+      if (fanim === 'radial') { const d = Math.hypot(cx - 0.5, (cy - 0.5) * 0.4); if (!base) c = '#FF2A2A'; anim = (base ? 'respirar ' : 'matiz ') + DUR + 's linear ' + (-d * 2 * DUR).toFixed(2) + 's infinite'; }
+      if (fanim === 'respirar') anim = 'respirar ' + (DUR * 1.4).toFixed(1) + 's ease-in-out infinite';
+      if (fanim === 'estrelas') anim = 'cintilar ' + (DUR * 1.5).toFixed(1) + 's ease-out ' + (-pseudo(i) * DUR * 1.5).toFixed(2) + 's infinite';
+      if (fanim === 'toque') anim = 'toque ' + (DUR * 3).toFixed(1) + 's ease-out ' + (-pseudo(i + 3) * DUR * 3).toFixed(2) + 's infinite';
+      if (fanim === 'musica') { c = 'hsl(' + Math.round(120 - cy * 120) + ' 95% 55%)'; anim = 'barra ' + (0.6 + pseudo(Math.round(k.x * 3)) * 0.8).toFixed(2) + 's ease-in-out ' + (-cy * 0.5).toFixed(2) + 's infinite alternate'; }
+      if (fanim === 'cpu') c = 'hsl(' + Math.round(220 - cx * 220) + ' 95% 55%)';
+      if (fanim === 'calor') { const q = ['W', 'A', 'S', 'D', 'E', 'Espaço', 'Shift esquerdo', 'Ctrl', 'Enter', 'Backspace'].includes(k.name) ? 1 : pseudo(i) * 0.5; c = 'hsl(' + Math.round(230 - q * 230) + ' 95% 55%)'; }
+      if (fanim !== 'onda' && fanim !== 'radial') fgc = c;
+      else fgc = base || '#E9E3FF';
+      if (lit) {
+        glows.push({ style: 'position: absolute; left: ' + left + 'px; top: ' + top + 'px; width: ' + w + 'px; height: ' + h + 'px; border-radius: 5px; pointer-events: none; box-shadow: 0 0 0 2px color-mix(in srgb, ' + c + ' ' + alpha + '%, transparent), 0 3px 10px color-mix(in srgb, ' + c + ' ' + Math.round(alpha * 0.9) + '%, transparent); animation: ' + anim });
+      }
+      let fg = lit ? 'color-mix(in srgb, ' + fgc + ' 70%, ' + ink[k.r] + ')' : ink[k.r];
+      let ring = 'none', border = 'transparent';
+      if (s.tab === 'teclas' && s.selKey === k.name) { ring = '0 0 0 3px #2647C9'; border = '#FFFFFF'; }
+      return {
+        label: k.label,
+        aria: k.name,
+        pick: () => this.setState({ selKey: k.name, tab: s.tab === 'luz' ? 'teclas' : s.tab }),
+        style: 'position: absolute; left: ' + left + 'px; top: ' + top + 'px; width: ' + w + 'px; height: ' + h + 'px; box-sizing: border-box; padding: 3px 4px; display: flex; align-items: flex-end; justify-content: ' + (k.w > 1.4 ? 'flex-start' : 'center') + '; border: 1px solid ' + border + '; border-radius: 5px; cursor: pointer; font-size: ' + (k.label.length > 3 ? 9 : 10) + 'px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(0,0,0,0.10)), ' + caps[k.r] + '; color: ' + fg + '; box-shadow: ' + ring + ', inset 0 -3px 0 rgba(0,0,0,0.22)'
+      };
+    });
+    const cw = PAD * 2 + Math.round(W * P) - GAP, ch = PAD * 2 + Math.round(6.3 * P) - GAP;
+    const caseStyle = 'position: relative; width: ' + cw + 'px; height: ' + ch + 'px; border-radius: 14px; background: linear-gradient(180deg, #24272B, #15171A); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px rgba(31,35,40,0.28)';
+    const ledColor = lit ? (base || '#C9B8FF') : '#5A5F64';
+    const ledStyle = 'position: absolute; left: ' + (PAD + Math.round(1.3 * P)) + 'px; top: ' + (PAD + 6) + 'px; width: 4px; height: ' + (P - GAP - 12) + 'px; border-radius: 2px; background: ' + ledColor + '; box-shadow: ' + (lit ? '0 0 8px ' + ledColor : 'none');
+    const kd = Math.round(1.3 * P);
+    const knobOn = s.tab === 'teclas' && s.selKey === 'Roda';
+    const knob = {
+      pick: () => this.setState({ selKey: 'Roda', tab: s.tab === 'luz' ? 'teclas' : s.tab }),
+      style: 'position: absolute; left: ' + (PAD + Math.round((NUM + 2.4) * P)) + 'px; top: ' + (PAD - 6) + 'px; width: ' + kd + 'px; height: ' + kd + 'px; padding: 0; border-radius: 50%; cursor: pointer; border: 0; background: conic-gradient(from 200deg, #F2F3F1, #9DA1A3, #E8E9E6, #8C9093, #F2F3F1); box-shadow: ' + (knobOn ? '0 0 0 3px #2647C9' : '0 2px 6px rgba(0,0,0,0.5)'),
+      inner: 'display: block; margin: 7px; height: ' + (kd - 14) + 'px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3A3E42, #121416)'
+    };
+
+    const groups = GROUPS.map(([id, label]) => {
+      const on = s.group === id;
+      return { label, on: on ? 'true' : 'false', pick: () => this.setState({ group: id }), style: 'min-height: 40px; padding: 0 14px; border: 0; background: none; cursor: pointer; font-size: 14px; margin-bottom: -1px; border-bottom: 2px solid ' + (on ? '#2647C9' : 'transparent') + '; color: ' + (on ? '#2647C9' : '#3E444B') + '; font-weight: ' + (on ? 600 : 400) };
+    });
+    const STRIP = {
+      fixo: '#9B4DFF', respirar: 'linear-gradient(90deg, #2A1650, #9B4DFF, #2A1650)', portecla: 'linear-gradient(90deg, #9B4DFF 0 60%, #FF8800 60% 75%, #9B4DFF 75%)', off: '#3A3E42',
+      onda: 'linear-gradient(90deg, #FF2A2A, #FFD400, #2DFF6A, #2AD4FF, #6A4BFF, #FF2AD4)', radial: 'conic-gradient(from 90deg at 50% 50%, #FF2A2A, #FFD400, #2DFF6A, #2AD4FF, #6A4BFF, #FF2A2A)',
+      toque: 'linear-gradient(90deg, #2A1650 0 40%, #9B4DFF 40% 52%, #2A1650 52%)', estrelas: 'radial-gradient(circle at 20% 50%, #FFFFFF 0 2px, transparent 3px), radial-gradient(circle at 70% 40%, #C9B8FF 0 2px, transparent 3px), #2A1650',
+      musica: 'linear-gradient(0deg, #2DFF6A, #FFD400, #FF2A2A)', cpu: 'linear-gradient(90deg, #2A6AFF, #FFD400, #FF2A2A)', calor: 'linear-gradient(90deg, #2A6AFF, #2A6AFF 50%, #FF8800 70%, #FF2A2A)'
+    };
+    const cards = FX.filter((f) => f[1] === s.group).map((f) => {
+      const on = f[0] === fid;
+      const app = f[4] < 0;
+      return {
+        label: f[2], sub: f[3], on: on ? 'true' : 'false',
+        pick: () => this.setState({ effect: f[0] }),
+        strip: 'display: block; height: 6px; border-radius: 3px; margin-bottom: 4px; background: ' + (STRIP[f[8]] || '#9B4DFF'),
+        subStyle: 'font-size: 11px; color: ' + (on ? '#D6DEFB' : app ? '#8A4C06' : '#5B6168'),
+        style: 'display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 64px; padding: 8px 12px 10px; border-radius: 10px; cursor: pointer; text-align: left; border: 1px solid ' + (on ? '#2647C9' : '#C6CAC6') + '; background: ' + (on ? '#2647C9' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#1F2328')
+      };
+    });
+    const steps = (key, label) => [0, 1, 2, 3, 4].map((v) => {
+      const on = s[key] === v;
+      return { label: String(v), aria: label + ' ' + v, pick: () => this.setState({ [key]: v }), style: 'min-height: 36px; border-radius: 7px; cursor: pointer; font-size: 14px; font-variant-numeric: tabular-nums; border: 1px solid ' + (on ? '#2647C9' : '#C6CAC6') + '; background: ' + (on ? '#2647C9' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#1F2328') + '; font-weight: ' + (on ? 600 : 400) };
+    });
+    const colors = [['#FF2A2A', 'Vermelho'], ['#FF8800', 'Laranja'], ['#FFD400', 'Amarelo'], ['#2DFF6A', 'Verde'], ['#2AD4FF', 'Ciano'], ['#2F6BFF', 'Azul'], ['#9B4DFF', 'Roxo'], ['#FFFFFF', 'Branco']];
+    const swatches = colors.map(([hex, name]) => {
+      const on = !useRandom && s.color === hex;
+      return { aria: name, pick: () => this.setState({ color: hex, random: false }), style: 'height: 28px; border-radius: 6px; cursor: pointer; padding: 0; background: ' + hex + '; border: 1px solid #A9AEA9; box-shadow: ' + (on ? '0 0 0 2px #F5F6F4, 0 0 0 4px #1F2328' : 'none') };
+    });
+    return {
+      tabs, keys, glows, caseStyle, ledStyle, knob, groups, cards, swatches,
+      sel: { label: fname, sub: isApp ? 'novo' : forig, desc: fdesc, isApp, isPaint: fid === 'portecla', hasBright: fid !== 'off' && fid !== 'portecla', hasSpeed: !!fvel, hasColor: !!fcor, hasRandom: !!frand },
+      bright: steps('bright', 'Brilho'),
+      speed: steps('speed', 'Velocidade'),
+      random: !!s.random,
+      toggleRandom: () => this.setState({ random: !s.random }),
+      selKey: s.selKey,
+      showLuz: s.tab === 'luz',
+      showTeclas: s.tab === 'teclas',
+      showGeral: s.tab === 'geral'
+    };
+  }
+}
+</script>
+</body>
+</html>

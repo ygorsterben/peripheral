@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Gerenciador de Periféricos</title>
+<link rel="stylesheet" href="estilo.css">
+<script>
+// guarda os erros da interface e manda para o registro do Python quando a ponte existir
+window.__erros = [];
+const __reg = (t) => { window.__erros.push(t); __enviar(); };
+function __enviar() { const api = window.pywebview && window.pywebview.api; if (!api || !api.registrar) return setTimeout(__enviar, 300);
+  while (window.__erros.length) api.registrar(window.__erros.shift()); }
+window.addEventListener("error", (e) => __reg(`ERRO ${e.message} em ${(e.filename || "").split("/").pop()}:${e.lineno}`));
+window.addEventListener("unhandledrejection", (e) => __reg(`PROMESSA ${e.reason}`));
+</script>
+</head>
+<body>
+
+<!-- ===================== INÍCIO ===================== -->
+<section id="inicio" class="tela ativa" aria-label="Início">
+<header class="topo">
+<div><h1>Periféricos</h1><span class="sub">Escolha um aparelho para configurar. Os aparelhos são detectados sozinhos.</span></div>
+<div style="display: flex; align-items: center; gap: 14px">
+<span class="pequeno" id="versao"></span>
+</div>
+</header>
+<div class="cartoes">
+<button class="cartao" data-ir="teclado" aria-label="Abrir as configurações do teclado">
+<div class="palco"><div id="mini-teclado" aria-hidden="true"></div></div>
+<div class="dados">
+<div class="linha-nome">
+<span class="nome"><span class="pequeno">Teclado</span><b>F99 Pro</b></span>
+<span class="status"><span class="ponto" id="t-ponto"></span><span id="t-conexao">procurando…</span></span>
+</div>
+<div class="bateria"><span class="rotulo"><span class="sub">Bateria</span><b id="t-bat">—</b></span><span class="trilho"><span id="t-bat-barra" style="width: 0%"></span></span></div>
+<div class="aviso" id="t-aviso"></div>
+<span class="rodape-cartao"><span class="resumo" id="t-resumo">—</span><span class="ir">Configurar →</span></span>
+</div>
+</button>
+
+<button class="cartao" data-ir="mouse" aria-label="Abrir as configurações do mouse">
+<div class="palco">
+<svg viewBox="0 0 140 235" width="168" height="282" aria-hidden="true">
+<defs>
+<radialGradient id="corpo" cx="0.42" cy="0.62" r="0.7"><stop offset="0" style="stop-color: var(--mouse-claro)"/><stop offset="0.55" style="stop-color: var(--mouse-meio)"/><stop offset="1" style="stop-color: var(--mouse-escuro)"/></radialGradient>
+<clipPath id="casca"><path d="M69.0 0.5 L22.5 10.0 L19.5 12.5 L17.5 15.0 L16.0 17.5 L14.5 20.0 L13.5 22.5 L12.5 25.0 L11.0 32.0 L10.5 34.5 L10.5 37.0 L10.0 39.5 L10.5 42.0 L10.5 44.5 L10.5 51.5 L11.0 54.0 L11.0 56.5 L11.5 59.0 L11.0 61.5 L11.0 64.0 L11.0 66.5 L11.0 69.0 L11.0 71.5 L11.5 74.0 L11.5 76.5 L11.5 79.0 L11.5 81.5 L11.5 84.0 L11.5 86.5 L11.5 92.0 L13.5 96.0 L13.5 98.5 L12.0 101.0 L12.0 103.5 L12.0 106.0 L12.5 110.0 L13.0 118.5 L13.0 121.0 L12.5 123.5 L12.5 126.0 L12.5 128.5 L12.0 131.0 L12.0 133.5 L11.5 136.0 L11.0 138.5 L11.0 141.0 L10.5 143.5 L10.0 146.0 L10.0 148.5 L9.5 151.0 L9.5 153.5 L9.0 156.0 L8.5 158.5 L8.5 161.0 L8.0 163.5 L8.0 166.0 L7.5 168.5 L7.5 171.0 L7.0 173.5 L7.0 176.0 L7.0 178.5 L7.5 181.0 L8.0 183.5 L8.0 186.0 L8.5 188.5 L9.0 191.0 L9.5 193.5 L10.5 196.0 L11.5 198.5 L12.5 201.0 L14.0 203.5 L15.5 206.0 L17.5 208.5 L18.5 210.0 L20.0 212.5 L22.0 214.5 L24.0 216.0 L26.0 218.0 L28.0 219.5 L30.0 221.0 L32.0 222.0 L34.0 223.5 L36.0 224.5 L38.0 225.5 L40.0 226.5 L42.0 227.5 L44.0 228.0 L46.0 229.0 L48.0 229.5 L50.0 230.0 L52.0 230.5 L54.0 231.0 L56.0 231.5 L58.0 231.5 L60.0 232.0 L62.0 232.5 L64.0 232.5 L66.0 233.0 L68.0 233.0 L70.0 232.5 L72.0 232.0 L74.0 231.5 L76.0 231.5 L78.0 231.0 L80.0 230.5 L82.0 230.0 L84.0 229.5 L86.0 228.5 L88.0 227.5 L90.0 227.0 L92.0 225.5 L94.0 224.5 L96.0 223.5 L98.0 222.0 L100.0 220.5 L102.0 219.0 L104.0 217.5 L106.0 215.5 L108.0 213.5 L110.0 211.5 L112.5 208.5 L114.5 206.0 L116.5 203.5 L118.0 201.0 L119.5 198.5 L121.0 196.0 L122.5 193.5 L123.5 191.0 L124.5 188.5 L125.5 186.0 L126.5 183.5 L127.5 181.0 L128.0 178.5 L129.0 176.0 L129.5 173.5 L130.0 171.0 L130.5 168.5 L131.0 166.0 L131.0 163.5 L131.5 161.0 L132.0 158.5 L132.0 156.0 L132.5 153.5 L132.5 151.0 L132.5 148.5 L133.0 146.0 L132.5 143.5 L132.5 141.0 L132.5 138.5 L132.0 136.0 L132.0 133.5 L131.5 131.0 L131.5 128.5 L131.5 126.0 L131.0 123.5 L131.0 121.0 L130.5 118.5 L129.5 110.0 L129.0 106.0 L128.5 103.5 L128.5 101.0 L128.0 98.5 L127.5 96.0 L127.5 92.0 L127.0 86.5 L127.0 84.0 L127.0 81.5 L127.0 79.0 L127.0 76.5 L127.0 74.0 L127.0 71.5 L127.0 69.0 L127.0 66.5 L127.0 64.0 L127.0 61.5 L127.0 59.0 L127.0 56.5 L127.0 54.0 L127.0 51.5 L127.0 44.5 L127.0 42.0 L126.5 39.5 L126.5 37.0 L126.0 34.5 L125.5 32.0 L123.5 25.0 L122.0 22.5 L120.5 20.0 L119.0 17.5 L116.5 15.0 L114.0 12.5 L110.0 10.0 Z"/></clipPath>
+</defs>
+<path d="M69.0 0.5 L22.5 10.0 L19.5 12.5 L17.5 15.0 L16.0 17.5 L14.5 20.0 L13.5 22.5 L12.5 25.0 L11.0 32.0 L10.5 34.5 L10.5 37.0 L10.0 39.5 L10.5 42.0 L10.5 44.5 L10.5 51.5 L11.0 54.0 L11.0 56.5 L11.5 59.0 L11.0 61.5 L11.0 64.0 L11.0 66.5 L11.0 69.0 L11.0 71.5 L11.5 74.0 L11.5 76.5 L11.5 79.0 L11.5 81.5 L11.5 84.0 L11.5 86.5 L11.5 92.0 L13.5 96.0 L13.5 98.5 L12.0 101.0 L12.0 103.5 L12.0 106.0 L12.5 110.0 L13.0 118.5 L13.0 121.0 L12.5 123.5 L12.5 126.0 L12.5 128.5 L12.0 131.0 L12.0 133.5 L11.5 136.0 L11.0 138.5 L11.0 141.0 L10.5 143.5 L10.0 146.0 L10.0 148.5 L9.5 151.0 L9.5 153.5 L9.0 156.0 L8.5 158.5 L8.5 161.0 L8.0 163.5 L8.0 166.0 L7.5 168.5 L7.5 171.0 L7.0 173.5 L7.0 176.0 L7.0 178.5 L7.5 181.0 L8.0 183.5 L8.0 186.0 L8.5 188.5 L9.0 191.0 L9.5 193.5 L10.5 196.0 L11.5 198.5 L12.5 201.0 L14.0 203.5 L15.5 206.0 L17.5 208.5 L18.5 210.0 L20.0 212.5 L22.0 214.5 L24.0 216.0 L26.0 218.0 L28.0 219.5 L30.0 221.0 L32.0 222.0 L34.0 223.5 L36.0 224.5 L38.0 225.5 L40.0 226.5 L42.0 227.5 L44.0 228.0 L46.0 229.0 L48.0 229.5 L50.0 230.0 L52.0 230.5 L54.0 231.0 L56.0 231.5 L58.0 231.5 L60.0 232.0 L62.0 232.5 L64.0 232.5 L66.0 233.0 L68.0 233.0 L70.0 232.5 L72.0 232.0 L74.0 231.5 L76.0 231.5 L78.0 231.0 L80.0 230.5 L82.0 230.0 L84.0 229.5 L86.0 228.5 L88.0 227.5 L90.0 227.0 L92.0 225.5 L94.0 224.5 L96.0 223.5 L98.0 222.0 L100.0 220.5 L102.0 219.0 L104.0 217.5 L106.0 215.5 L108.0 213.5 L110.0 211.5 L112.5 208.5 L114.5 206.0 L116.5 203.5 L118.0 201.0 L119.5 198.5 L121.0 196.0 L122.5 193.5 L123.5 191.0 L124.5 188.5 L125.5 186.0 L126.5 183.5 L127.5 181.0 L128.0 178.5 L129.0 176.0 L129.5 173.5 L130.0 171.0 L130.5 168.5 L131.0 166.0 L131.0 163.5 L131.5 161.0 L132.0 158.5 L132.0 156.0 L132.5 153.5 L132.5 151.0 L132.5 148.5 L133.0 146.0 L132.5 143.5 L132.5 141.0 L132.5 138.5 L132.0 136.0 L132.0 133.5 L131.5 131.0 L131.5 128.5 L131.5 126.0 L131.0 123.5 L131.0 121.0 L130.5 118.5 L129.5 110.0 L129.0 106.0 L128.5 103.5 L128.5 101.0 L128.0 98.5 L127.5 96.0 L127.5 92.0 L127.0 86.5 L127.0 84.0 L127.0 81.5 L127.0 79.0 L127.0 76.5 L127.0 74.0 L127.0 71.5 L127.0 69.0 L127.0 66.5 L127.0 64.0 L127.0 61.5 L127.0 59.0 L127.0 56.5 L127.0 54.0 L127.0 51.5 L127.0 44.5 L127.0 42.0 L126.5 39.5 L126.5 37.0 L126.0 34.5 L125.5 32.0 L123.5 25.0 L122.0 22.5 L120.5 20.0 L119.0 17.5 L116.5 15.0 L114.0 12.5 L110.0 10.0 Z" fill="url(#corpo)" stroke="#0B0C0E" stroke-width="0.8" stroke-linejoin="round"/>
+<g clip-path="url(#casca)" fill="none" stroke="#5A6067" stroke-width="0.9"><path d="M-2 98 Q38 106 68.5 106.5 Q100 106 142 98"/><path d="M69 -2 V106.5"/></g>
+<rect x="59" y="19" width="19" height="41" rx="8" fill="#15171A" stroke="#D9DBD8" stroke-width="1.8"/>
+<path d="M62 25 H75 M62 29 H75 M62 33 H75 M62 37 H75 M62 41 H75 M62 45 H75 M62 49 H75 M62 53 H75" stroke="#0E0F11" stroke-width="1.1"/>
+<rect x="11" y="63" width="4" height="31" rx="2" fill="#2A2D31" stroke="#5A6067" stroke-width="0.8"/>
+<rect x="11" y="101" width="4" height="34" rx="2" fill="#2A2D31" stroke="#5A6067" stroke-width="0.8"/>
+</svg>
+</div>
+<div class="dados">
+<div class="linha-nome">
+<span class="nome"><span class="pequeno">Mouse</span><b>BK-R6X</b></span>
+<span class="status"><span class="ponto" id="m-ponto"></span><span id="m-conexao">procurando…</span></span>
+</div>
+<div class="bateria"><span class="rotulo"><span class="sub">Bateria</span><b id="m-bat">—</b></span><span class="trilho"><span id="m-bat-barra" style="width: 0%"></span></span></div>
+<div class="aviso" id="m-aviso"></div>
+<span class="rodape-cartao"><span class="resumo" id="m-resumo">—</span><span class="ir">Configurar →</span></span>
+</div>
+</button>
+</div>
+</section>
+
+<!-- ===================== MOUSE ===================== -->
+<section id="mouse" class="tela aparelho" aria-label="Mouse">
+<nav class="lateral">
+<a class="voltar" href="#inicio">← Periféricos</a>
+<a class="item-lateral atual" href="#mouse"><span class="l1">Mouse <span class="x-m-bat">—</span></span><span class="pequeno x-m-con">—</span></a>
+<a class="item-lateral" href="#teclado"><span class="l1">Teclado <span class="x-t-bat">—</span></span><span class="pequeno x-t-con">—</span></a>
+<span class="espaco"></span><span class="pequeno" style="padding: 0 12px">Fica na bandeja ao fechar</span>
+</nav>
+<main>
+<header class="topo">
+<div><h1>BK-R6X</h1><span class="sub" id="m-sub">—</span></div>
+<span class="chip" id="m-chip" role="status"></span>
+</header>
+<div class="faixa" id="m-mexa" hidden><span class="pulso"></span>Mexa o mouse: parado, ele não responde pelo receptor. A gravação continua sozinha.</div>
+<div class="aviso" id="m-aviso2"></div>
+
+<section class="secao">
+<div class="cabeca">
+<span><h2>Níveis de DPI</h2><span class="pequeno">Clique numa barra para usar o nível agora. A bolinha é a cor do LED.</span></span>
+<button class="botao" id="m-editar-dpi">Editar valores e cores</button>
+</div>
+<div class="escada" id="escada"></div>
+</section>
+
+<div class="duas">
+<section class="secao">
+<h2>Taxa de resposta</h2>
+<div class="segmentos" id="m-polling" role="radiogroup" aria-label="Taxa de resposta"></div>
+<label class="campo"><span class="rotulo-campo">Desligar sem uso depois de</span>
+<select id="m-sono"></select>
+<span class="pequeno">Só no receptor e no Bluetooth. Mexa o mouse para acordar.</span></label>
+</section>
+
+<section class="secao">
+<div class="cabeca">
+<span><h2>Botões</h2><span class="pequeno">No Bluetooth voltam ao padrão; o app troca pelo PC (em breve).</span>
+<span class="cor-desenho" role="group" aria-label="Cor do mouse no desenho"><span class="pequeno">Cor do desenho</span><button type="button" class="amostra" data-cor-mouse="202327" style="background:#202327" aria-label="Preto"></button><button type="button" class="amostra" data-cor-mouse="E9EAE7" style="background:#E9EAE7" aria-label="Branco"></button><input type="color" id="cor-mouse" value="#202327" aria-label="Outra cor"></span></span>
+<button class="botao primario" id="m-trocar">Trocar função</button>
+</div>
+<div class="mapa" id="mapa-botoes">
+<svg viewBox="0 0 140 235" width="149" height="250" class="mapa-mouse" role="img" aria-label="Mouse visto de cima">
+<defs><radialGradient id="corpo2" cx="0.42" cy="0.62" r="0.7"><stop offset="0" style="stop-color: var(--mouse-claro)"/><stop offset="0.55" style="stop-color: var(--mouse-meio)"/><stop offset="1" style="stop-color: var(--mouse-escuro)"/></radialGradient><clipPath id="casca2"><path d="M69.0 0.5 L22.5 10.0 L19.5 12.5 L17.5 15.0 L16.0 17.5 L14.5 20.0 L13.5 22.5 L12.5 25.0 L11.0 32.0 L10.5 34.5 L10.5 37.0 L10.0 39.5 L10.5 42.0 L10.5 44.5 L10.5 51.5 L11.0 54.0 L11.0 56.5 L11.5 59.0 L11.0 61.5 L11.0 64.0 L11.0 66.5 L11.0 69.0 L11.0 71.5 L11.5 74.0 L11.5 76.5 L11.5 79.0 L11.5 81.5 L11.5 84.0 L11.5 86.5 L11.5 92.0 L13.5 96.0 L13.5 98.5 L12.0 101.0 L12.0 103.5 L12.0 106.0 L12.5 110.0 L13.0 118.5 L13.0 121.0 L12.5 123.5 L12.5 126.0 L12.5 128.5 L12.0 131.0 L12.0 133.5 L11.5 136.0 L11.0 138.5 L11.0 141.0 L10.5 143.5 L10.0 146.0 L10.0 148.5 L9.5 151.0 L9.5 153.5 L9.0 156.0 L8.5 158.5 L8.5 161.0 L8.0 163.5 L8.0 166.0 L7.5 168.5 L7.5 171.0 L7.0 173.5 L7.0 176.0 L7.0 178.5 L7.5 181.0 L8.0 183.5 L8.0 186.0 L8.5 188.5 L9.0 191.0 L9.5 193.5 L10.5 196.0 L11.5 198.5 L12.5 201.0 L14.0 203.5 L15.5 206.0 L17.5 208.5 L18.5 210.0 L20.0 212.5 L22.0 214.5 L24.0 216.0 L26.0 218.0 L28.0 219.5 L30.0 221.0 L32.0 222.0 L34.0 223.5 L36.0 224.5 L38.0 225.5 L40.0 226.5 L42.0 227.5 L44.0 228.0 L46.0 229.0 L48.0 229.5 L50.0 230.0 L52.0 230.5 L54.0 231.0 L56.0 231.5 L58.0 231.5 L60.0 232.0 L62.0 232.5 L64.0 232.5 L66.0 233.0 L68.0 233.0 L70.0 232.5 L72.0 232.0 L74.0 231.5 L76.0 231.5 L78.0 231.0 L80.0 230.5 L82.0 230.0 L84.0 229.5 L86.0 228.5 L88.0 227.5 L90.0 227.0 L92.0 225.5 L94.0 224.5 L96.0 223.5 L98.0 222.0 L100.0 220.5 L102.0 219.0 L104.0 217.5 L106.0 215.5 L108.0 213.5 L110.0 211.5 L112.5 208.5 L114.5 206.0 L116.5 203.5 L118.0 201.0 L119.5 198.5 L121.0 196.0 L122.5 193.5 L123.5 191.0 L124.5 188.5 L125.5 186.0 L126.5 183.5 L127.5 181.0 L128.0 178.5 L129.0 176.0 L129.5 173.5 L130.0 171.0 L130.5 168.5 L131.0 166.0 L131.0 163.5 L131.5 161.0 L132.0 158.5 L132.0 156.0 L132.5 153.5 L132.5 151.0 L132.5 148.5 L133.0 146.0 L132.5 143.5 L132.5 141.0 L132.5 138.5 L132.0 136.0 L132.0 133.5 L131.5 131.0 L131.5 128.5 L131.5 126.0 L131.0 123.5 L131.0 121.0 L130.5 118.5 L129.5 110.0 L129.0 106.0 L128.5 103.5 L128.5 101.0 L128.0 98.5 L127.5 96.0 L127.5 92.0 L127.0 86.5 L127.0 84.0 L127.0 81.5 L127.0 79.0 L127.0 76.5 L127.0 74.0 L127.0 71.5 L127.0 69.0 L127.0 66.5 L127.0 64.0 L127.0 61.5 L127.0 59.0 L127.0 56.5 L127.0 54.0 L127.0 51.5 L127.0 44.5 L127.0 42.0 L126.5 39.5 L126.5 37.0 L126.0 34.5 L125.5 32.0 L123.5 25.0 L122.0 22.5 L120.5 20.0 L119.0 17.5 L116.5 15.0 L114.0 12.5 L110.0 10.0 Z"/></clipPath></defs>
+<path d="M69.0 0.5 L22.5 10.0 L19.5 12.5 L17.5 15.0 L16.0 17.5 L14.5 20.0 L13.5 22.5 L12.5 25.0 L11.0 32.0 L10.5 34.5 L10.5 37.0 L10.0 39.5 L10.5 42.0 L10.5 44.5 L10.5 51.5 L11.0 54.0 L11.0 56.5 L11.5 59.0 L11.0 61.5 L11.0 64.0 L11.0 66.5 L11.0 69.0 L11.0 71.5 L11.5 74.0 L11.5 76.5 L11.5 79.0 L11.5 81.5 L11.5 84.0 L11.5 86.5 L11.5 92.0 L13.5 96.0 L13.5 98.5 L12.0 101.0 L12.0 103.5 L12.0 106.0 L12.5 110.0 L13.0 118.5 L13.0 121.0 L12.5 123.5 L12.5 126.0 L12.5 128.5 L12.0 131.0 L12.0 133.5 L11.5 136.0 L11.0 138.5 L11.0 141.0 L10.5 143.5 L10.0 146.0 L10.0 148.5 L9.5 151.0 L9.5 153.5 L9.0 156.0 L8.5 158.5 L8.5 161.0 L8.0 163.5 L8.0 166.0 L7.5 168.5 L7.5 171.0 L7.0 173.5 L7.0 176.0 L7.0 178.5 L7.5 181.0 L8.0 183.5 L8.0 186.0 L8.5 188.5 L9.0 191.0 L9.5 193.5 L10.5 196.0 L11.5 198.5 L12.5 201.0 L14.0 203.5 L15.5 206.0 L17.5 208.5 L18.5 210.0 L20.0 212.5 L22.0 214.5 L24.0 216.0 L26.0 218.0 L28.0 219.5 L30.0 221.0 L32.0 222.0 L34.0 223.5 L36.0 224.5 L38.0 225.5 L40.0 226.5 L42.0 227.5 L44.0 228.0 L46.0 229.0 L48.0 229.5 L50.0 230.0 L52.0 230.5 L54.0 231.0 L56.0 231.5 L58.0 231.5 L60.0 232.0 L62.0 232.5 L64.0 232.5 L66.0 233.0 L68.0 233.0 L70.0 232.5 L72.0 232.0 L74.0 231.5 L76.0 231.5 L78.0 231.0 L80.0 230.5 L82.0 230.0 L84.0 229.5 L86.0 228.5 L88.0 227.5 L90.0 227.0 L92.0 225.5 L94.0 224.5 L96.0 223.5 L98.0 222.0 L100.0 220.5 L102.0 219.0 L104.0 217.5 L106.0 215.5 L108.0 213.5 L110.0 211.5 L112.5 208.5 L114.5 206.0 L116.5 203.5 L118.0 201.0 L119.5 198.5 L121.0 196.0 L122.5 193.5 L123.5 191.0 L124.5 188.5 L125.5 186.0 L126.5 183.5 L127.5 181.0 L128.0 178.5 L129.0 176.0 L129.5 173.5 L130.0 171.0 L130.5 168.5 L131.0 166.0 L131.0 163.5 L131.5 161.0 L132.0 158.5 L132.0 156.0 L132.5 153.5 L132.5 151.0 L132.5 148.5 L133.0 146.0 L132.5 143.5 L132.5 141.0 L132.5 138.5 L132.0 136.0 L132.0 133.5 L131.5 131.0 L131.5 128.5 L131.5 126.0 L131.0 123.5 L131.0 121.0 L130.5 118.5 L129.5 110.0 L129.0 106.0 L128.5 103.5 L128.5 101.0 L128.0 98.5 L127.5 96.0 L127.5 92.0 L127.0 86.5 L127.0 84.0 L127.0 81.5 L127.0 79.0 L127.0 76.5 L127.0 74.0 L127.0 71.5 L127.0 69.0 L127.0 66.5 L127.0 64.0 L127.0 61.5 L127.0 59.0 L127.0 56.5 L127.0 54.0 L127.0 51.5 L127.0 44.5 L127.0 42.0 L126.5 39.5 L126.5 37.0 L126.0 34.5 L125.5 32.0 L123.5 25.0 L122.0 22.5 L120.5 20.0 L119.0 17.5 L116.5 15.0 L114.0 12.5 L110.0 10.0 Z" fill="url(#corpo2)" stroke="#0B0C0E" stroke-width="0.8" stroke-linejoin="round"/>
+<g clip-path="url(#casca2)">
+<path class="zona" data-botao="1" d="M-2 -2 H68.5 V106.5 Q38 106 -2 98 Z"/>
+<path class="zona" data-botao="2" d="M69.5 -2 H142 V98 Q100 106 69.5 106.5 Z"/>
+</g>
+<rect class="zona roda" data-botao="3" x="59" y="19" width="19" height="41" rx="8"/>
+<path d="M62 25 H75 M62 29 H75 M62 33 H75 M62 37 H75 M62 41 H75 M62 45 H75 M62 49 H75 M62 53 H75" stroke="#0E0F11" stroke-width="1.1" pointer-events="none"/>
+<rect class="zona" data-botao="4" x="11" y="63" width="4" height="31" rx="2"/>
+<rect class="zona" data-botao="5" x="11" y="101" width="4" height="34" rx="2"/>
+<circle class="zona embaixo" data-botao="6" cx="95.5" cy="111" r="7"/>
+</svg>
+<svg class="mapa-linhas" width="432" height="280" aria-hidden="true" id="mapa-linhas"></svg>
+<div id="mapa-rotulos"></div>
+</div>
+</section>
+</div>
+</main>
+</section>
+
+<!-- diálogo: editar DPI -->
+<dialog id="dlg-dpi" aria-labelledby="dlg-dpi-titulo">
+<form method="dialog" class="dialogo">
+<header class="cabeca"><span><h2 id="dlg-dpi-titulo">Níveis de DPI</h2><span class="pequeno">O botão de DPI embaixo do mouse percorre os níveis ativos, nesta ordem.</span></span>
+<button class="fechar" value="cancelar" aria-label="Fechar sem gravar">✕</button></header>
+<div class="cabeca"><b>Quantos níveis o botão usa</b><div class="segmentos" id="dpi-niveis" role="radiogroup" aria-label="Quantidade de níveis"></div></div>
+<div class="tabela-dpi">
+<span class="pequeno">Nível</span><span class="pequeno">DPI</span><span class="pequeno">Cor do LED</span><span class="pequeno" style="text-align: right">Usar agora</span>
+<div id="dpi-linhas" style="display: contents"></div>
+</div>
+<span class="pequeno">De 50 a 18.000. O mouse aceita passos de 50 até 10.000, de 100 até 12.000 e de 1.000 acima disso; o app arredonda sozinho.</span>
+<div class="erro" id="dpi-erro"></div>
+<footer class="cabeca">
+<button type="button" class="link" id="dpi-padrao">Voltar ao padrão de fábrica</button>
+<span class="botoes"><button class="botao" value="cancelar">Cancelar</button><button type="button" class="botao primario" id="dpi-gravar">Gravar no mouse</button></span>
+</footer>
+</form>
+</dialog>
+
+<!-- diálogo: editar macro do teclado (fora da aba Teclas para não mudar a altura da tela) -->
+<dialog id="dlg-macro" aria-labelledby="dlg-macro-titulo">
+<form method="dialog" class="dialogo">
+<header class="cabeca"><span><h2 id="dlg-macro-titulo">Macro</h2><span class="pequeno">Gravada no teclado; roda sem o app aberto.</span></span>
+<button class="fechar" value="cancelar" aria-label="Fechar sem salvar">✕</button></header>
+<label class="campo"><span class="rotulo-campo">Nome da macro (até 16 letras)</span><input id="m-nome" maxlength="16" type="text"></label>
+<button type="button" class="captura" id="m-gravar-seq">Clique aqui e aperte as teclas da macro</button>
+<ol class="lista-trocas" id="m-eventos"></ol>
+<span class="pequeno" id="m-info"></span>
+<div class="erro" id="m-erro"></div>
+<footer class="cabeca">
+<span></span>
+<span class="botoes"><button class="botao" value="cancelar">Cancelar</button><button type="button" class="botao primario" id="m-salvar">Salvar macro</button></span>
+</footer>
+</form>
+</dialog>
+
+<!-- diálogo: trocar função -->
+<dialog id="dlg-funcao" aria-labelledby="dlg-funcao-titulo">
+<form method="dialog" class="dialogo largo">
+<header class="cabeca"><span><span class="pequeno" id="fn-qual">—</span><h2 id="dlg-funcao-titulo">Trocar função</h2></span>
+<span class="agora">Agora<b id="fn-agora">—</b></span>
+<button class="fechar" value="cancelar" aria-label="Fechar sem gravar">✕</button></header>
+<div class="funcao-corpo">
+<nav class="categorias" id="fn-categorias" aria-label="Tipos de função"></nav>
+<div class="funcao-opcoes">
+<span class="pequeno" id="fn-dica"></span>
+<div id="fn-opcoes" class="grade-opcoes"></div>
+<div id="fn-tecla" hidden>
+<b>Modificadores</b>
+<div class="segmentos soltos" id="fn-mods"></div>
+<b>Tecla</b>
+<button type="button" class="captura" id="fn-capturar">Clique aqui e aperte a tecla</button>
+<span>Resultado: <b class="combo" id="fn-combo">—</b></span>
+</div>
+</div>
+</div>
+<div class="erro" id="fn-erro"></div>
+<footer class="cabeca">
+<button type="button" class="link" id="fn-padrao">Voltar ao padrão</button>
+<span class="botoes"><button class="botao" value="cancelar">Cancelar</button><button type="button" class="botao primario" id="fn-gravar">Gravar no mouse</button></span>
+</footer>
+</form>
+</dialog>
+
+<!-- ===================== TECLADO ===================== -->
+<section id="teclado" class="tela aparelho" aria-label="Teclado" data-aba="luz">
+<nav class="lateral">
+<a class="voltar" href="#inicio">← Periféricos</a>
+<a class="item-lateral" href="#mouse"><span class="l1">Mouse <span class="x-m-bat">—</span></span><span class="pequeno x-m-con">—</span></a>
+<a class="item-lateral atual" href="#teclado"><span class="l1">Teclado <span class="x-t-bat">—</span></span><span class="pequeno x-t-con">—</span></a>
+<span class="espaco"></span><span class="pequeno" style="padding: 0 12px">Fica na bandeja ao fechar</span>
+</nav>
+<main>
+<header class="topo">
+<div><h1>F99 Pro</h1><span class="sub" id="t-sub">—</span></div>
+<span style="display: flex; align-items: center; gap: 14px">
+<span class="chip" id="t-chip" role="status"></span>
+<span class="segmentos" role="tablist" aria-label="Seções do teclado" id="t-abas">
+<button role="tab" data-aba="luz" aria-selected="true">Luz</button>
+<button role="tab" data-aba="geral" aria-selected="false">Geral</button>
+<button role="tab" data-aba="teclas" aria-selected="false">Teclas</button>
+</span>
+</span>
+</header>
+<div class="aviso" id="t-aviso2"></div>
+
+<section aria-label="Desenho do teclado" class="palco-teclado"><div id="teclado-grande"></div></section>
+
+<div class="aba" data-aba="luz">
+<div class="duas-luz">
+<section class="secao">
+<div class="abas-grupo" role="tablist" aria-label="Grupos de efeitos" id="t-grupos"></div>
+<div class="cartoes-efeito" id="t-efeitos"></div>
+</section>
+<section class="secao painel-efeito" aria-live="polite">
+<span class="cabeca"><h2 id="t-ef-nome">—</h2><span class="pequeno" id="t-ef-orig"></span></span>
+<span class="pequeno" id="t-ef-desc"></span>
+<a class="botao primario" id="t-pintar" href="#luz-por-tecla" style="display: flex; align-items: center; justify-content: center; text-decoration: none">Pintar tecla por tecla</a>
+<div class="campo" id="t-c-brilho"><span class="rotulo-campo">Brilho</span><div class="segmentos" id="t-brilho" role="radiogroup" aria-label="Brilho"></div></div>
+<div class="campo" id="t-c-vel"><span class="rotulo-campo">Velocidade</span><div class="segmentos" id="t-vel" role="radiogroup" aria-label="Velocidade"></div></div>
+<div class="campo" id="t-c-cor"><span class="rotulo-campo">Cor</span>
+<div class="paleta" id="t-paleta"></div>
+<label class="linha-check" id="t-c-colorido"><input type="checkbox" id="t-colorido"><span>Cores aleatórias</span></label>
+</div>
+<div class="erro" id="t-erro"></div>
+<span class="botoes" style="margin-top: auto">
+<button class="botao" id="t-desfazer" disabled>Desfazer</button>
+<button class="botao primario" id="t-gravar" disabled>Gravar no teclado</button>
+</span>
+</section>
+</div>
+</div>
+
+<div class="aba" data-aba="geral" hidden>
+<div class="grade-geral">
+<section class="secao"><label class="campo"><span class="rotulo-campo">Apagar sem uso depois de</span><select id="t-sono"></select>
+<span class="pequeno">Só sem fio. Qualquer tecla acorda.</span></label></section>
+<section class="secao"><div class="campo"><span class="rotulo-campo">Filtro de toque duplo (debounce)</span>
+<div class="segmentos" id="t-debounce" role="radiogroup" aria-label="Debounce"></div>
+<span class="pequeno">1 = mais rápido, 4 = mais seguro. Suba se uma tecla digitar duas vezes.</span></div></section>
+<section class="secao"><div class="campo"><span class="rotulo-campo">Teclado</span>
+<span>Firmware <b id="t-fw">—</b></span><span class="pequeno">Lido às <span id="t-lido">—</span></span></div></section>
+</div>
+</div>
+
+<div class="aba" data-aba="teclas" hidden>
+<section aria-label="Teclado: escolha a tecla" class="palco-teclado"><div id="teclado-teclas"></div></section>
+<div class="duas-teclas">
+<section class="secao">
+<div class="cabeca"><span><h2 id="k-titulo">Escolha uma tecla no desenho</h2><span class="pequeno" id="k-agora"></span></span></div>
+<div class="segmentos" id="k-tipos" role="radiogroup" aria-label="O que a tecla faz">
+<button type="button" role="radio" data-tipo="padrao">Padrão</button>
+<button type="button" role="radio" data-tipo="tecla">Outra tecla ou atalho</button>
+<button type="button" role="radio" data-tipo="midia">Multimídia</button>
+<button type="button" role="radio" data-tipo="macro">Macro</button>
+<button type="button" role="radio" data-tipo="desativar">Desativar</button>
+</div>
+<div id="k-tecla" class="linha-tecla" hidden>
+<div class="segmentos soltos" id="k-mods"></div>
+<button type="button" class="captura" id="k-capturar">Clique aqui e aperte a tecla</button>
+<b class="combo" id="k-combo">—</b>
+</div>
+<div id="k-midia" hidden><select id="k-lista-midia" aria-label="Função multimídia"></select></div>
+<div id="k-macro" hidden>
+<div class="linha-tecla" id="m-escolha">
+<select id="k-lista-macro" aria-label="Macro desta tecla"></select>
+<button type="button" class="botao" id="m-nova">Nova</button>
+<button type="button" class="botao" id="m-editar">Editar</button>
+<button type="button" class="botao" id="m-excluir">Excluir</button>
+<span id="m-rotulo-vezes" class="linha-modo">
+<select id="m-modo" aria-label="Como a macro repete">
+<option value="vezes">Repetir um número de vezes</option>
+<option value="segurar">Repetir enquanto segurar a tecla</option>
+<option value="ate_outra">Repetir até apertar outra tecla</option>
+</select>
+<label id="m-rotulo-num"><input id="m-vezes" type="number" min="1" max="99" value="1" aria-label="Quantas vezes a macro roda"> vez(es)</label>
+</span>
+</div>
+<span class="pequeno">A macro é gravada no teclado e roda sem o app aberto.</span>
+</div>
+<div class="erro" id="k-erro"></div>
+</section>
+<section class="secao">
+<div class="cabeca"><h2>Teclas trocadas</h2><span class="pequeno" id="k-conta">nenhuma</span></div>
+<span class="pequeno">Não funcionou? Aperte <b>Fn + W</b>: as trocas só valem no modo Windows (Fn + Q é o modo Mac).</span>
+<ul class="lista-trocas" id="k-lista"></ul>
+<span class="botoes" style="margin-top: auto">
+<button type="button" class="botao" id="k-tudo-padrao">Voltar tudo ao padrão</button>
+<button type="button" class="botao primario" id="k-gravar" disabled>Gravar no teclado</button>
+</span>
+</section>
+</div>
+</div>
+</main>
+</section>
+
+<!-- ===================== LUZ POR TECLA ===================== -->
+<section id="luz-por-tecla" class="tela" aria-label="Luz por tecla">
+<main class="pintar">
+<header class="topo">
+<div><a class="voltar" href="#teclado" style="padding: 0; min-height: 32px">← Teclado</a>
+<h1>Luz por tecla</h1><span class="sub">Escolha uma cor embaixo e clique nas teclas para pintar.</span></div>
+<span style="display: flex; align-items: center; gap: 14px">
+<span class="chip" id="p-chip" role="status"></span>
+<span class="segmentos" role="radiogroup" aria-label="Ferramenta" id="p-ferramenta">
+<button type="button" role="radio" data-ferramenta="pintar" aria-checked="true">Pintar</button>
+<button type="button" role="radio" data-ferramenta="apagar" aria-checked="false">Apagar</button>
+</span>
+</span>
+</header>
+<section aria-label="Teclado para pintar" class="palco-teclado"><div id="teclado-pintar"></div></section>
+<div class="duas-pintar">
+<section class="secao">
+<div class="cabeca"><span style="display: flex; flex-direction: row; align-items: center; gap: 12px">
+<span class="amostra-grande" id="p-pincel"></span><span style="display: flex; flex-direction: column"><b>Cor do pincel</b><span class="pequeno" id="p-hex">—</span></span></span>
+<input type="color" id="p-cor" aria-label="Escolher outra cor"></div>
+<div class="paleta" id="p-paleta"></div>
+</section>
+<section class="secao">
+<b>Atalhos</b>
+<button type="button" class="botao" id="p-todas">Pintar todas com esta cor</button>
+<button type="button" class="botao" id="p-wasd">Destacar WASD e setas</button>
+<button type="button" class="botao" id="p-limpar">Apagar todas</button>
+</section>
+</div>
+<footer class="cabeca">
+<span class="pequeno">Gravar liga o efeito "Por tecla". O teclado não devolve as cores, então o app guarda uma cópia no PC.</span>
+<span class="botoes"><a class="botao" href="#teclado" style="display: flex; align-items: center; text-decoration: none">Cancelar</a>
+<button type="button" class="botao primario" id="p-gravar">Gravar no teclado</button></span>
+</footer>
+<div class="erro" id="p-erro"></div>
+</main>
+</section>
+
+<script src="app.js"></script>
+<script src="mouse.js"></script>
+<script src="teclado.js"></script>
+<script src="pintar.js"></script>
+<script src="teclas.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Editar DPI</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2647C9}a:hover{color:#1A3396}
+button,input{font-family:inherit}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #2647C9;outline-offset:2px}
+input[type=number]::-webkit-inner-spin-button{opacity:1}
+</style>
+</helmet>
+<div style="width: 1120px; height: 760px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: #8E928F; color: #1F2328; font-family: 'Archivo', 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+
+<section role="dialog" aria-labelledby="titulo" style="width: 640px; box-sizing: border-box; background: #F5F6F4; border-radius: 16px; box-shadow: 0 24px 60px rgba(20,22,25,0.35); padding: 22px 26px 18px; display: flex; flex-direction: column; gap: 14px">
+
+<header style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 id="titulo" style="margin: 0; font-size: 28px; line-height: 1; font-weight: 700; font-stretch: 75%">Níveis de DPI</h1>
+<span style="color: #5B6168">O botão de DPI embaixo do mouse percorre os níveis ativos, nesta ordem. A cor é a do LED no meio do mouse.</span>
+</div>
+<a href="Main.dc.html" aria-label="Fechar sem gravar" style="flex-shrink: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #3E444B; text-decoration: none">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 4 L14 14 M14 4 L4 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+</a>
+</header>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<span style="font-weight: 600">Quantos níveis o botão usa</span>
+<div role="radiogroup" aria-label="Quantidade de níveis" style="display: grid; grid-template-columns: repeat(6, 44px); gap: 4px; background: #E4E6E3; border-radius: 10px; padding: 4px">
+<sc-for list="{{counts}}" as="c" hint-placeholder-count="6">
+<button role="radio" aria-checked="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: grid; grid-template-columns: 70px 1fr 120px 92px; gap: 12px; padding: 0 12px; font-size: 12px; color: #5B6168">
+<span>Nível</span><span>DPI</span><span>Cor do LED</span><span style="text-align: right">Usar agora</span>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<div style="{{r.rowStyle}}">
+<span style="font-weight: 600; font-variant-numeric: tabular-nums">{{r.n}}</span>
+<label style="display: flex; align-items: center; gap: 8px">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">DPI do nível {{r.n}}</span>
+<input type="number" min="50" max="18000" step="{{r.step}}" value="{{r.value}}" disabled="{{r.off}}" onChange="{{r.change}}" style="width: 120px; min-height: 38px; box-sizing: border-box; border: 1px solid #C6CAC6; border-radius: 9px; background: #FFFFFF; padding: 0 10px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; color: #1F2328">
+<span style="font-size: 12px; color: #5B6168">passo {{r.step}}</span>
+</label>
+<button onClick="{{r.pickColor}}" aria-label="{{r.colorAria}}" disabled="{{r.off}}" style="{{r.colorBtn}}">
+<span style="{{r.dot}}"></span>
+<span style="font-size: 12px; font-variant-numeric: tabular-nums; color: #3E444B">{{r.hex}}</span>
+</button>
+<span style="display: flex; justify-content: flex-end">
+<button role="radio" aria-checked="{{r.active}}" aria-label="{{r.activeAria}}" onClick="{{r.pickActive}}" disabled="{{r.off}}" style="{{r.radio}}"><span style="{{r.radioDot}}"></span></button>
+</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px; background: #EBECE9; border-radius: 12px; padding: 12px 14px">
+<span style="font-size: 13px"><b style="font-weight: 600">Cor do LED do nível {{selN}}</b> <span style="color: #5B6168">· escolha uma cor</span></span>
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<sc-for list="{{palette}}" as="p" hint-placeholder-count="10">
+<button onClick="{{p.pick}}" aria-label="{{p.aria}}" style="{{p.style}}"></button>
+</sc-for>
+</div>
+</div>
+
+<span style="font-size: 12px; color: #5B6168">Valores de 50 a 18.000. O mouse aceita passos de 50 até 10.000, de 100 até 12.000 e de 1.000 acima disso; o app arredonda sozinho.</span>
+
+<footer style="display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid #DDE0DC; padding-top: 16px">
+<button onClick="{{reset}}" style="border: 0; background: none; color: #2647C9; font-size: 14px; cursor: pointer; min-height: 44px; padding: 0 4px">Voltar ao padrão de fábrica</button>
+<span style="display: flex; gap: 8px">
+<a href="Main.dc.html" style="display: flex; align-items: center; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 10px; padding: 0 16px; min-height: 44px; color: #1F2328; text-decoration: none">Cancelar</a>
+<a href="Main.dc.html" style="display: flex; align-items: center; border: 0; background: #2647C9; border-radius: 10px; padding: 0 18px; min-height: 44px; color: #FFFFFF; font-weight: 600; text-decoration: none">Gravar no mouse</a>
+</span>
+</footer>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1120,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 6, active: 4, sel: 4,
+      dpi: [800, 1600, 2400, 3200, 4800, 12000],
+      color: ['#FF0000', '#00FF00', '#0000FF', '#FF00FF', '#FFFFFF', '#00FFFF']
+    };
+  }
+  renderVals() {
+    const s = this.state;
+    const step = (v) => (v <= 10000 ? 50 : v <= 12000 ? 100 : 1000);
+    const snap = (v) => {
+      v = Math.max(50, Math.min(18000, Math.round(+v || 50)));
+      const st = step(v);
+      return Math.round(v / st) * st;
+    };
+    const counts = [1, 2, 3, 4, 5, 6].map((n) => {
+      const on = n === s.count;
+      return {
+        label: String(n), on: String(on),
+        pick: () => this.setState({ count: n, active: Math.min(s.active, n - 1), sel: Math.min(s.sel, n - 1) }),
+        style: 'min-height: 36px; border: 0; border-radius: 7px; cursor: pointer; font-size: 14px; font-variant-numeric: tabular-nums; font-weight: ' + (on ? 600 : 400) + '; background: ' + (on ? '#FFFFFF' : 'transparent') + '; color: ' + (on ? '#2647C9' : '#1F2328') + '; box-shadow: ' + (on ? '0 1px 2px rgba(31,35,40,0.18)' : 'none')
+      };
+    });
+    const rows = s.dpi.map((v, i) => {
+      const off = i >= s.count;
+      const sel = i === s.sel && !off;
+      const act = i === s.active;
+      const c = s.color[i];
+      return {
+        n: String(i + 1), value: String(v), step: String(step(v)), off,
+        change: (e) => { const d = s.dpi.slice(); d[i] = snap(e && e.target ? e.target.value : v); this.setState({ dpi: d }); },
+        hex: c.slice(1), colorAria: 'Cor do LED do nível ' + (i + 1) + ': ' + c,
+        pickColor: () => this.setState({ sel: i }),
+        pickActive: () => this.setState({ active: i }),
+        active: String(act), activeAria: 'Usar o nível ' + (i + 1) + ' agora',
+        rowStyle: 'display: grid; grid-template-columns: 70px 1fr 120px 92px; gap: 12px; align-items: center; padding: 3px 12px; border-radius: 10px; opacity: ' + (off ? 0.4 : 1) + '; background: ' + (sel ? '#E3E8FA' : '#FFFFFF') + '; box-shadow: inset 0 0 0 1px ' + (sel ? '#2647C9' : '#DDE0DC'),
+        colorBtn: 'display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px; border: 1px solid #C6CAC6; border-radius: 9px; background: #FFFFFF; cursor: ' + (off ? 'default' : 'pointer'),
+        dot: 'width: 18px; height: 18px; border-radius: 50%; background: ' + c + '; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25)' + (off ? '' : ', 0 0 8px ' + c),
+        radio: 'width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; border: 0; background: none; cursor: ' + (off ? 'default' : 'pointer'),
+        radioDot: 'width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + (act ? '#2647C9' : '#8A9096') + '; box-shadow: inset 0 0 0 3px #FFFFFF; background: ' + (act ? '#2647C9' : '#FFFFFF')
+      };
+    });
+    const opts = [['#FF0000', 'Vermelho'], ['#FF8800', 'Laranja'], ['#FFD400', 'Amarelo'], ['#00FF00', 'Verde'], ['#00FFFF', 'Ciano'], ['#0000FF', 'Azul'], ['#8A2BE2', 'Roxo'], ['#FF00FF', 'Magenta'], ['#FFFFFF', 'Branco'], ['#000000', 'Apagado']];
+    const palette = opts.map(([hex, name]) => {
+      const on = s.color[s.sel].toUpperCase() === hex;
+      return {
+        aria: name,
+        pick: () => { const c = s.color.slice(); c[s.sel] = hex; this.setState({ color: c }); },
+        style: 'width: 44px; height: 32px; border-radius: 8px; cursor: pointer; padding: 0; background: ' + hex + '; border: 1px solid #A9AEA9; box-shadow: ' + (on ? '0 0 0 2px #EBECE9, 0 0 0 4px #1F2328' : 'none')
+      };
+    });
+    return {
+      counts, rows, palette, selN: String(s.sel + 1),
+      reset: () => this.setState({ count: 6, active: 4, sel: 4, dpi: [800, 1600, 2400, 3200, 4800, 12000], color: ['#FF0000', '#00FF00', '#0000FF', '#FF00FF', '#FF8800', '#00FFFF'] })
+    };
+  }
+}
+</script>
+</body>
+</html>

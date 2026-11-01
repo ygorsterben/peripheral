@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Menu da bandeja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2647C9}a:hover{color:#1A3396}
+button{font-family:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #2647C9;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 320px; height: 520px; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: #F5F6F4; border: 1px solid #C6CAC6; border-radius: 12px; box-shadow: 0 12px 30px rgba(31,35,40,0.18); color: #1F2328; font-family: 'Archivo', 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.4">
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 2px 6px">
+<div style="display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span><b style="font-weight: 600">Mouse</b> <span style="font-size: 12px; color: #5B6168">· 2.4G</span></span><span style="font-variant-numeric: tabular-nums">100 %</span></div>
+<span style="height: 4px; border-radius: 2px; background: #D3D7D3; display: flex"><span style="width: 100%; border-radius: 2px; background: #1F2328"></span></span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span><b style="font-weight: 600">Teclado</b> <span style="font-size: 12px; color: #5B6168">· receptor</span></span><span style="font-variant-numeric: tabular-nums; color: #8A4C06; font-weight: 600">15 %</span></div>
+<span style="height: 4px; border-radius: 2px; background: #D3D7D3; display: flex"><span style="width: 15%; border-radius: 2px; background: #B4640A"></span></span>
+<span style="font-size: 12px; color: #8A4C06">Bateria baixa. Ligue o cabo para carregar.</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 6px 4px; border-top: 1px solid #DDE0DC">
+<span style="font-weight: 600">DPI do mouse</span>
+<div role="radiogroup" aria-label="DPI do mouse" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{levels}}" as="lv" hint-placeholder-count="6">
+<button role="radio" aria-checked="{{lv.on}}" onClick="{{lv.pick}}" style="{{lv.style}}"><span style="{{lv.dot}}"></span>{{lv.label}}</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 6px 4px; border-top: 1px solid #DDE0DC">
+<span style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-weight: 600">Luz do teclado</b><span style="font-size: 12px; color: #5B6168">{{effectName}}</span></span>
+<div role="radiogroup" aria-label="Brilho do teclado" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{bright}}" as="b" hint-placeholder-count="5">
+<button role="radio" aria-checked="{{b.on}}" aria-label="{{b.aria}}" onClick="{{b.pick}}" style="{{b.style}}">{{b.label}}</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; border-top: 1px solid #DDE0DC; padding-top: 6px; margin-top: auto">
+<a href="Inicio.dc.html" style="display: flex; align-items: center; min-height: 40px; padding: 0 10px; border-radius: 8px; color: #1F2328; text-decoration: none; font-weight: 600">Abrir o app</a>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; cursor: pointer">
+<input type="checkbox" checked="checked" style="width: 18px; height: 18px; margin: 0; accent-color: #2647C9">
+<span>Iniciar com o Windows</span>
+</label>
+<button style="display: flex; align-items: center; min-height: 40px; padding: 0 10px; border: 0; border-radius: 8px; background: none; color: #1F2328; font-size: 14px; cursor: pointer; text-align: left">Sair</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":320,"height":520}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { level: 4, bright: 4 };
+  }
+  renderVals() {
+    const s = this.state;
+    const leds = ['#FF0000', '#00FF00', '#0000FF', '#FF00FF', '#FFFFFF', '#00FFFF'];  // cor do LED de cada nível
+    const levels = [800, 1600, 2400, 3200, 4800, 12000].map((d, i) => {
+      const on = i === s.level;
+      return {
+        label: d.toLocaleString('pt-BR'), on: on ? 'true' : 'false',
+        pick: () => this.setState({ level: i }),
+        style: 'display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; border-radius: 7px; cursor: pointer; font-size: 15px; font-stretch: 75%; font-variant-numeric: tabular-nums; border: 1px solid ' + (on ? '#2647C9' : '#C6CAC6') + '; background: ' + (on ? '#2647C9' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#1F2328') + '; font-weight: ' + (on ? 700 : 500),
+        dot: 'width: 8px; height: 8px; border-radius: 50%; background: ' + leds[i] + '; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3)'
+      };
+    });
+    const bright = [0, 1, 2, 3, 4].map((v) => {
+      const on = v === s.bright;
+      return {
+        label: v === 0 ? 'Off' : String(v), on: on ? 'true' : 'false', aria: v === 0 ? 'Luz desligada' : 'Brilho ' + v,
+        pick: () => this.setState({ bright: v }),
+        style: 'min-height: 34px; border-radius: 7px; cursor: pointer; font-size: 13px; font-variant-numeric: tabular-nums; border: 1px solid ' + (on ? '#2647C9' : '#C6CAC6') + '; background: ' + (on ? '#2647C9' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#1F2328') + '; font-weight: ' + (on ? 600 : 400)
+      };
+    });
+    return { levels, bright, effectName: s.bright === 0 ? 'Desligada' : 'Neon stream' };
+  }
+}
+</script>
+</body>
+</html>

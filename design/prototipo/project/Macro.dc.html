@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Editor de macro</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2647C9}a:hover{color:#1A3396}
+button,input{font-family:inherit}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #2647C9;outline-offset:2px}
+@keyframes pulso{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</helmet>
+<div style="width: 1120px; height: 760px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: #8E928F; color: #1F2328; font-family: 'Archivo', 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+
+<section role="dialog" aria-labelledby="titulo" style="width: 980px; height: 660px; box-sizing: border-box; background: #F5F6F4; border-radius: 16px; box-shadow: 0 24px 60px rgba(20,22,25,0.35); display: flex; flex-direction: column; overflow: hidden">
+
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px 14px; border-bottom: 1px solid #DDE0DC">
+<h1 id="titulo" style="margin: 0; font-size: 26px; line-height: 1.05; font-weight: 700; font-stretch: 75%">Editor de macro</h1>
+<a href="TrocarFuncao.dc.html" aria-label="Fechar sem salvar" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #3E444B; text-decoration: none">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 4 L14 14 M14 4 L4 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+</a>
+</header>
+
+<div style="display: flex; flex-grow: 1; min-height: 0">
+
+<nav aria-label="Macros gravadas" style="width: 190px; flex-shrink: 0; box-sizing: border-box; padding: 12px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid #DDE0DC">
+<span style="padding: 0 10px 6px; font-size: 12px; color: #5B6168">Macros</span>
+<sc-for list="{{list}}" as="m" hint-placeholder-count="3">
+<button onClick="{{m.pick}}" aria-current="{{m.current}}" style="{{m.style}}">{{m.label}}</button>
+</sc-for>
+<button style="margin-top: 6px; min-height: 40px; border: 1px dashed #9EA3A1; background: none; border-radius: 8px; color: #2647C9; font-weight: 600; cursor: pointer">+ Nova macro</button>
+</nav>
+
+<div style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; gap: 10px; align-items: flex-end">
+<label style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #5B6168">Nome</span>
+<input value="{{name}}" style="min-height: 42px; border: 1px solid #C6CAC6; border-radius: 10px; background: #FFFFFF; padding: 0 12px; font-size: 15px; font-weight: 600"></label>
+<button onClick="{{toggleRec}}" aria-pressed="{{recPressed}}" style="{{recStyle}}"><span style="{{recDot}}"></span>{{recLabel}}</button>
+</div>
+
+<sc-if value="{{recording}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; align-items: center; gap: 10px; background: #FBE9E7; color: #8A1C12; border-radius: 10px; padding: 10px 14px; font-size: 13px">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #C62828; animation: pulso 1s infinite"></span>
+Gravando: aperte as teclas e os cliques na ordem. Os tempos entre eles também são gravados.
+</div>
+</sc-if>
+
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<span style="font-weight: 600">Eventos</span>
+<span style="font-size: 12px; color: #5B6168; font-variant-numeric: tabular-nums">{{count}} de 30 (limite do mouse)</span>
+</div>
+
+<ol aria-label="Lista de eventos" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-height: 0; overflow: auto">
+<sc-for list="{{events}}" as="e" hint-placeholder-count="6">
+<li style="{{e.rowStyle}}">
+<span style="width: 22px; font-size: 12px; color: #5B6168; font-variant-numeric: tabular-nums">{{e.n}}</span>
+<span style="{{e.badge}}">{{e.arrow}}</span>
+<span style="flex-grow: 1"><b style="font-weight: 600">{{e.key}}</b> <span style="color: #5B6168">{{e.verb}}</span></span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5B6168">depois espera
+<input value="{{e.delay}}" aria-label="{{e.delayAria}}" disabled="{{delayLocked}}" style="width: 62px; min-height: 32px; box-sizing: border-box; border: 1px solid #C6CAC6; border-radius: 7px; padding: 0 8px; text-align: right; font-variant-numeric: tabular-nums; background: #FFFFFF">ms</span>
+<button aria-label="{{e.delAria}}" style="width: 36px; height: 36px; border: 0; background: none; border-radius: 8px; cursor: pointer; color: #5B6168">
+<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+</button>
+</li>
+</sc-for>
+</ol>
+
+<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+<span style="font-size: 12px; color: #5B6168; margin-right: 4px">Inserir:</span>
+<button style="min-height: 36px; padding: 0 12px; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 8px; cursor: pointer">Tecla</button>
+<button style="min-height: 36px; padding: 0 12px; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 8px; cursor: pointer">Clique esquerdo</button>
+<button style="min-height: 36px; padding: 0 12px; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 8px; cursor: pointer">Clique do meio</button>
+<button style="min-height: 36px; padding: 0 12px; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 8px; cursor: pointer">Clique direito</button>
+<button style="min-height: 36px; padding: 0 12px; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 8px; cursor: pointer">Espera</button>
+</div>
+</div>
+
+<aside style="width: 250px; flex-shrink: 0; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; gap: 18px; border-left: 1px solid #DDE0DC; background: #EFF0EE">
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+<legend style="padding: 0 0 6px; font-weight: 600">Tempo entre eventos</legend>
+<sc-for list="{{delayModes}}" as="d" hint-placeholder-count="3">
+<button role="radio" aria-checked="{{d.on}}" onClick="{{d.pick}}" style="{{d.style}}"><span style="{{d.dot}}"></span>{{d.label}}</button>
+</sc-for>
+<sc-if value="{{showFixed}}" hint-placeholder-val="{{ false }}">
+<label style="display: flex; align-items: center; gap: 8px; padding-left: 30px; font-size: 13px">
+<input value="50" aria-label="Atraso fixo em milissegundos" style="width: 64px; min-height: 34px; box-sizing: border-box; border: 1px solid #C6CAC6; border-radius: 7px; padding: 0 8px; text-align: right">ms entre todos</label>
+</sc-if>
+</fieldset>
+
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+<legend style="padding: 0 0 6px; font-weight: 600">Repetição</legend>
+<sc-for list="{{loopModes}}" as="d" hint-placeholder-count="3">
+<button role="radio" aria-checked="{{d.on}}" onClick="{{d.pick}}" style="{{d.style}}"><span style="{{d.dot}}"></span>{{d.label}}</button>
+</sc-for>
+<sc-if value="{{showTimes}}" hint-placeholder-val="{{ true }}">
+<label style="display: flex; align-items: center; gap: 8px; padding-left: 30px; font-size: 13px">
+<input value="1" aria-label="Quantas vezes" style="width: 64px; min-height: 34px; box-sizing: border-box; border: 1px solid #C6CAC6; border-radius: 7px; padding: 0 8px; text-align: right">vez(es)</label>
+</sc-if>
+</fieldset>
+
+<span style="margin-top: auto; font-size: 12px; color: #5B6168">A macro fica gravada no mouse e funciona em qualquer PC, sem o app aberto.</span>
+</aside>
+</div>
+
+<footer style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 24px; border-top: 1px solid #DDE0DC">
+<button style="border: 0; background: none; color: #B3261E; font-size: 14px; cursor: pointer; min-height: 44px; padding: 0 12px">Excluir macro</button>
+<span style="display: flex; gap: 8px">
+<a href="TrocarFuncao.dc.html" style="display: flex; align-items: center; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 10px; padding: 0 16px; min-height: 44px; color: #1F2328; text-decoration: none">Cancelar</a>
+<a href="TrocarFuncao.dc.html" style="display: flex; align-items: center; border: 0; background: #2647C9; border-radius: 10px; padding: 0 18px; min-height: 44px; color: #FFFFFF; font-weight: 600; text-decoration: none">Salvar macro</a>
+</span>
+</footer>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1120,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 'abc', rec: false, delay: 'gravado', loop: 'vezes' };
+  }
+  renderVals() {
+    const s = this.state;
+    const MACROS = {
+      'abc': [['A', 1, 42], ['A', 0, 63], ['B', 1, 38], ['B', 0, 71], ['C', 1, 40], ['C', 0, 0]],
+      'Login do jogo': [['Enter', 1, 30], ['Enter', 0, 500], ['Ctrl', 1, 10], ['V', 1, 30], ['V', 0, 10], ['Ctrl', 0, 200], ['Enter', 1, 30], ['Enter', 0, 0]],
+      'Copiar e colar': [['Ctrl', 1, 10], ['C', 1, 30], ['C', 0, 10], ['Ctrl', 0, 300], ['Clique esquerdo', 1, 60], ['Clique esquerdo', 0, 100], ['Ctrl', 1, 10], ['V', 1, 30], ['V', 0, 10], ['Ctrl', 0, 0]]
+    };
+    const list = Object.keys(MACROS).map((m) => {
+      const on = m === s.sel;
+      return {
+        label: m, current: on ? 'true' : 'false',
+        pick: () => this.setState({ sel: m, rec: false }),
+        style: 'min-height: 40px; padding: 0 14px; border: 0; border-radius: 8px; cursor: pointer; text-align: left; font-size: 14px; font-weight: ' + (on ? 600 : 400) + '; background: ' + (on ? '#E3E8FA' : 'transparent') + '; color: ' + (on ? '#2647C9' : '#1F2328') + '; box-shadow: inset 3px 0 0 ' + (on ? '#2647C9' : 'transparent')
+      };
+    });
+    const ev = MACROS[s.sel];
+    const fixed = s.delay === 'fixo', none = s.delay === 'nenhum';
+    const events = ev.map(([key, down, ms], i) => ({
+      n: String(i + 1), key,
+      arrow: down ? '↓' : '↑',
+      verb: down ? 'pressionar' : 'soltar',
+      delay: String(none ? 0 : fixed ? 50 : ms),
+      delayAria: 'Espera depois do evento ' + (i + 1) + ', em milissegundos',
+      delAria: 'Remover o evento ' + (i + 1),
+      badge: 'width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-weight: 700; background: ' + (down ? '#E3E8FA' : '#E4E6E3') + '; color: ' + (down ? '#2647C9' : '#3E444B'),
+      rowStyle: 'display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 8px 0 14px; border-radius: 9px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #DDE0DC'
+    }));
+    const radio = (cur, key, opts) => opts.map(([id, label]) => {
+      const on = cur === id;
+      return {
+        label, on: on ? 'true' : 'false',
+        pick: () => this.setState({ [key]: id }),
+        style: 'display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 8px; background: ' + (on ? '#FFFFFF' : 'transparent') + '; cursor: pointer; text-align: left; font-size: 14px; color: #1F2328',
+        dot: 'flex-shrink: 0; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 2px solid ' + (on ? '#2647C9' : '#8A9096') + '; box-shadow: inset 0 0 0 3px #FFFFFF; background: ' + (on ? '#2647C9' : '#FFFFFF')
+      };
+    });
+    return {
+      list, name: s.sel, events, count: String(ev.length),
+      recording: s.rec, recPressed: s.rec ? 'true' : 'false',
+      toggleRec: () => this.setState({ rec: !s.rec }),
+      recLabel: s.rec ? 'Parar' : 'Gravar',
+      recStyle: 'display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; border: 1px solid ' + (s.rec ? '#C62828' : '#C6CAC6') + '; background: ' + (s.rec ? '#C62828' : '#FFFFFF') + '; color: ' + (s.rec ? '#FFFFFF' : '#1F2328'),
+      recDot: 'width: 10px; height: 10px; border-radius: ' + (s.rec ? '2px' : '50%') + '; background: ' + (s.rec ? '#FFFFFF' : '#C62828'),
+      delayLocked: !( s.delay === 'gravado'),
+      delayModes: radio(s.delay, 'delay', [['nenhum', 'Sem espera'], ['gravado', 'Tempos gravados'], ['fixo', 'Tempo fixo']]),
+      loopModes: radio(s.loop, 'loop', [['vezes', 'Repetir algumas vezes'], ['segurar', 'Enquanto segurar o botão'], ['ate', 'Até apertar o botão de novo']]),
+      showFixed: fixed, showTimes: s.loop === 'vezes'
+    };
+  }
+}
+</script>
+</body>
+</html>

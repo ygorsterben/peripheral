@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Trocar função</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2647C9}a:hover{color:#1A3396}
+button,input{font-family:inherit}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #2647C9;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1120px; height: 760px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: #8E928F; color: #1F2328; font-family: 'Archivo', 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.45">
+
+<section role="dialog" aria-labelledby="titulo" style="width: 760px; height: 600px; box-sizing: border-box; background: #F5F6F4; border-radius: 16px; box-shadow: 0 24px 60px rgba(20,22,25,0.35); display: flex; flex-direction: column; overflow: hidden">
+
+<header style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid #DDE0DC">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; color: #5B6168">Botão 5 · lateral de trás</span>
+<h1 id="titulo" style="margin: 0; font-size: 26px; line-height: 1.05; font-weight: 700; font-stretch: 75%">Trocar função</h1>
+</div>
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; color: #5B6168">Agora<b style="font-size: 14px; color: #1F2328; font-weight: 600">{{chosenLabel}}</b></span>
+<a href="Main.dc.html" aria-label="Fechar sem gravar" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #3E444B; text-decoration: none">
+<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 4 L14 14 M14 4 L4 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+</a>
+</div>
+</header>
+
+<div style="display: flex; flex-grow: 1; min-height: 0">
+<nav aria-label="Tipos de função" style="width: 200px; flex-shrink: 0; box-sizing: border-box; padding: 12px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid #DDE0DC">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
+<button onClick="{{c.pick}}" aria-current="{{c.current}}" style="{{c.style}}">{{c.label}}</button>
+</sc-for>
+</nav>
+
+<div style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; color: #5B6168">{{catHint}}</span>
+
+<sc-if value="{{showChips}}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{chips}}" as="o" hint-placeholder-count="10">
+<button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showKey}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-weight: 600">Modificadores</span>
+<div style="display: flex; gap: 8px">
+<sc-for list="{{mods}}" as="m" hint-placeholder-count="4">
+<button onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="{{m.style}}">{{m.label}}</button>
+</sc-for>
+</div>
+<span style="font-weight: 600">Tecla</span>
+<button style="min-height: 64px; border: 2px dashed #9EA3A1; border-radius: 12px; background: #FFFFFF; cursor: pointer; font-size: 15px; color: #3E444B">Clique aqui e aperte a tecla no teclado</button>
+<span style="display: flex; align-items: center; gap: 8px">Resultado: <b style="font-size: 18px; font-weight: 700; font-stretch: 75%">{{keyCombo}}</b></span>
+</div>
+</sc-if>
+
+<sc-if value="{{showMacro}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{macros}}" as="o" hint-placeholder-count="3">
+<button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button>
+</sc-for>
+<a href="Macro.dc.html" style="align-self: flex-start; display: flex; align-items: center; min-height: 40px; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 10px; padding: 0 14px; color: #2647C9; font-weight: 600; text-decoration: none">Gravar ou editar macros</a>
+</div>
+</sc-if>
+
+<sc-if value="{{showFire}}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Cliques por aperto</span>
+<input type="number" min="0" max="255" value="5" style="min-height: 44px; border: 1px solid #C6CAC6; border-radius: 10px; padding: 0 12px; font-size: 16px; font-variant-numeric: tabular-nums">
+<span style="font-size: 12px; color: #5B6168">0 a 255. Com 0, dispara sem parar enquanto segura.</span></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Intervalo</span>
+<input type="number" min="5" max="255" value="10" style="min-height: 44px; border: 1px solid #C6CAC6; border-radius: 10px; padding: 0 12px; font-size: 16px; font-variant-numeric: tabular-nums">
+<span style="font-size: 12px; color: #5B6168">5 a 255. Quanto menor, mais rápido.</span></label>
+</div>
+</sc-if>
+
+<sc-if value="{{showOff}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 10px; background: #FFFFFF; border: 1px solid #DDE0DC; border-radius: 12px; padding: 16px">
+<b style="font-weight: 600">O botão não vai fazer nada.</b>
+<span style="color: #5B6168">Útil para um botão que você aperta sem querer. Dá para voltar ao padrão a qualquer momento.</span>
+</div>
+</sc-if>
+</div>
+</div>
+
+<footer style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 14px 24px; border-top: 1px solid #DDE0DC">
+<button onClick="{{reset}}" style="border: 0; background: none; color: #2647C9; font-size: 14px; cursor: pointer; min-height: 44px; padding: 0 12px">Voltar ao padrão (Voltar)</button>
+<span style="display: flex; gap: 8px">
+<a href="Main.dc.html" style="display: flex; align-items: center; border: 1px solid #C6CAC6; background: #FFFFFF; border-radius: 10px; padding: 0 16px; min-height: 44px; color: #1F2328; text-decoration: none">Cancelar</a>
+<a href="Main.dc.html" style="display: flex; align-items: center; border: 0; background: #2647C9; border-radius: 10px; padding: 0 18px; min-height: 44px; color: #FFFFFF; font-weight: 600; text-decoration: none">Gravar no mouse</a>
+</span>
+</footer>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1120,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cat: 'mouse', chosen: 'Voltar', mods: { Ctrl: true, Shift: false, Alt: false, Win: false }, key: 'C', macro: 'abc' };
+  }
+  renderVals() {
+    const s = this.state;
+    // nomes e grupos do software oficial (language/1033.lan); tipos do protocolo em docs/protocolo_mouse.md
+    const CATS = [
+      ['mouse', 'Mouse', 'Funções de clique e rolagem.', ['Clique esquerdo', 'Clique direito', 'Clique do meio', 'Avançar', 'Voltar', 'Duplo clique', 'Rolar para cima', 'Rolar para baixo', 'Rolar para a esquerda', 'Rolar para a direita']],
+      ['teclado', 'Tecla ou atalho', 'O botão digita uma tecla, sozinha ou com Ctrl, Shift, Alt e Win.', null],
+      ['midia', 'Multimídia', 'Controle de som e do player.', ['Volume +', 'Volume −', 'Mudo', 'Abrir o player', 'Tocar / pausar', 'Faixa anterior', 'Próxima faixa', 'Parar']],
+      ['sistema', 'Atalho do Windows', 'Abre programas ou faz ações do Windows.', ['Brilho da tela +', 'Brilho da tela −', 'Calculadora', 'Meu computador', 'Abrir site', 'E-mail', 'Mostrar área de trabalho', 'Trocar de janela']],
+      ['macro', 'Macro', 'Uma sequência gravada de teclas e cliques.', null],
+      ['dpi', 'DPI', 'Troca o nível de DPI, como o botão de baixo.', ['Ciclo de DPI']],
+      ['fogo', 'Disparo rápido', 'Cada aperto dispara vários cliques esquerdos.', null],
+      ['off', 'Desativar', 'Desliga o botão.', null]
+    ];
+    const cur = CATS.find((c) => c[0] === s.cat);
+    const cats = CATS.map(([id, label]) => {
+      const on = id === s.cat;
+      return {
+        label, current: on ? 'true' : 'false',
+        pick: () => this.setState({ cat: id }),
+        style: 'min-height: 40px; padding: 0 14px; border: 0; border-radius: 8px; cursor: pointer; text-align: left; font-size: 14px; font-weight: ' + (on ? 600 : 400) + '; background: ' + (on ? '#E3E8FA' : 'transparent') + '; color: ' + (on ? '#2647C9' : '#1F2328') + '; box-shadow: inset 3px 0 0 ' + (on ? '#2647C9' : 'transparent')
+      };
+    });
+    const opt = (label) => {
+      const on = s.chosen === label;
+      return {
+        label, on: on ? 'true' : 'false',
+        pick: () => this.setState({ chosen: label }),
+        style: 'min-height: 44px; padding: 0 14px; border-radius: 10px; cursor: pointer; text-align: left; font-size: 14px; border: 1px solid ' + (on ? '#2647C9' : '#C6CAC6') + '; background: ' + (on ? '#2647C9' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#1F2328') + '; font-weight: ' + (on ? 600 : 400)
+      };
+    };
+    const mods = ['Ctrl', 'Shift', 'Alt', 'Win'].map((m) => {
+      const on = !!s.mods[m];
+      return {
+        label: m, on: on ? 'true' : 'false',
+        pick: () => { const n = Object.assign({}, s.mods); n[m] = !on; this.setState({ mods: n, chosen: [...['Ctrl', 'Shift', 'Alt', 'Win'].filter((k) => n[k]), s.key].join(' + ') }); },
+        style: 'min-width: 72px; min-height: 40px; padding: 0 12px; border-radius: 9px; cursor: pointer; font-size: 14px; border: 1px solid ' + (on ? '#2647C9' : '#C6CAC6') + '; background: ' + (on ? '#2647C9' : '#FFFFFF') + '; color: ' + (on ? '#FFFFFF' : '#1F2328') + '; font-weight: ' + (on ? 600 : 400)
+      };
+    });
+    const keyCombo = [...['Ctrl', 'Shift', 'Alt', 'Win'].filter((k) => s.mods[k]), s.key].join(' + ');
+    const macros = ['abc', 'Login do jogo', 'Copiar e colar'].map((m) => opt('Macro: ' + m));
+    return {
+      cats, catHint: cur[2],
+      chips: (cur[3] || []).map(opt),
+      showChips: !!cur[3], showKey: s.cat === 'teclado', showMacro: s.cat === 'macro', showFire: s.cat === 'fogo', showOff: s.cat === 'off',
+      mods, keyCombo, macros,
+      chosenLabel: s.cat === 'off' ? 'Desativado' : s.cat === 'fogo' ? 'Disparo rápido' : s.cat === 'teclado' ? keyCombo : s.chosen,
+      reset: () => this.setState({ cat: 'mouse', chosen: 'Voltar' })
+    };
+  }
+}
+</script>
+</body>
+</html>
